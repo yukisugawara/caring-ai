@@ -49,6 +49,7 @@ export function ChatInterface() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isConversationEnded, setIsConversationEnded] = useState(false);
+  const conversationEndedRef = useRef(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [currentTranscript, setCurrentTranscript] = useState("");
@@ -211,10 +212,10 @@ export function ChatInterface() {
 
     recognition.onend = () => {
       setIsAutoListening(false);
-      // Only auto-restart if NOT manually stopped and NOT sending
-      if (!stoppedManuallyRef.current && !sendingRef.current && !speakingLockRef.current) {
+      // Only auto-restart if NOT manually stopped, NOT sending, NOT ended
+      if (!stoppedManuallyRef.current && !sendingRef.current && !speakingLockRef.current && !conversationEndedRef.current) {
         setTimeout(() => {
-          if (!stoppedManuallyRef.current && !sendingRef.current && !speakingLockRef.current) {
+          if (!stoppedManuallyRef.current && !sendingRef.current && !speakingLockRef.current && !conversationEndedRef.current) {
             startAutoListening();
           }
         }, 500);
@@ -267,8 +268,10 @@ export function ChatInterface() {
         setIsLoading(false);
       } finally {
         sendingRef.current = false;
-        // Resume listening
-        startAutoListening();
+        // Resume listening only if conversation is still going
+        if (!conversationEndedRef.current) {
+          startAutoListening();
+        }
       }
     },
     [speak, startAutoListening]
@@ -308,10 +311,18 @@ export function ChatInterface() {
   // End conversation and analyze
   const endConversation = useCallback(async () => {
     setIsConversationEnded(true);
+    conversationEndedRef.current = true;
+    setMicEnabled(false);
     clearSilenceTimer();
-    recognitionRef.current?.stop();
+    stoppedManuallyRef.current = true;
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch { /* ignore */ }
+      recognitionRef.current = null;
+    }
     setIsAutoListening(false);
+    setCurrentTranscript("");
     window.speechSynthesis.cancel();
+    speakingLockRef.current = false;
 
     const childUtterances = messages
       .filter((m) => m.role === "user")
@@ -500,9 +511,11 @@ export function ChatInterface() {
             <button
               onClick={() => {
                 setIsConversationEnded(false);
+                conversationEndedRef.current = false;
                 setIsStarted(false);
                 setMessages([]);
                 setAnalysisResult(null);
+                setMicEnabled(false);
               }}
               className="px-6 py-3 bg-gradient-to-r from-orange-400 to-pink-400 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
             >
