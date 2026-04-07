@@ -62,6 +62,24 @@ const ENCOURAGEMENTS_EN = [
   "Lesser-kun is always on your side.",
 ];
 
+const ENCOURAGEMENTS_PT = [
+  "Tudo bem. Você consegue.",
+  "Pode ir devagar. O Lesser-kun está esperando por você.",
+  "Fala o que você está pensando.",
+  "Não tem problema errar. Vamos tentar.",
+  "Qualquer coisa serve. Me conta algo que você gosta.",
+  "O que você comeu hoje? Quero saber.",
+  "Qual é a sua brincadeira favorita? Conta pro Lesser-kun.",
+  "Não se preocupe, aqui você pode falar sobre qualquer coisa.",
+  "O Lesser-kun fica muito feliz de ouvir sua voz.",
+  "Estou me divertindo conversando com você.",
+  "Qualquer palavra serve. Até uma só palavra está ótimo.",
+  "Você está pensando em silêncio. Isso também é legal.",
+  "Coisas legais, coisas tristes, pode falar de tudo.",
+  "Sua voz é muito bonita. Quero ouvir mais.",
+  "O Lesser-kun está sempre do seu lado.",
+];
+
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -76,7 +94,7 @@ export function ChatInterface() {
   const [isAutoListening, setIsAutoListening] = useState(false);
   const [silenceWarning, setSilenceWarning] = useState("");
   const [micEnabled, setMicEnabled] = useState(false);
-  const [language, setLanguage] = useState<"ja" | "en">("ja");
+  const [language, setLanguage] = useState<"ja" | "en" | "pt">("ja");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
@@ -96,7 +114,7 @@ export function ChatInterface() {
     const SpeechRecognition = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SpeechRecognition) return null;
     const recognition = new SpeechRecognition();
-    recognition.lang = language === "ja" ? "ja-JP" : "en-US";
+    recognition.lang = language === "ja" ? "ja-JP" : language === "pt" ? "pt-BR" : "en-US";
     recognition.interimResults = true;
     recognition.continuous = true;
     return recognition;
@@ -142,14 +160,14 @@ export function ChatInterface() {
       // Fallback to Web Speech API
       await new Promise<void>((resolve) => {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = language === "ja" ? "ja-JP" : "en-US";
+        utterance.lang = language === "ja" ? "ja-JP" : language === "pt" ? "pt-BR" : "en-US";
         utterance.rate = 0.9;
         utterance.pitch = 1.2;
         const voices = window.speechSynthesis.getVoices();
-        const langPrefix = language === "ja" ? "ja" : "en";
+        const langPrefix = language === "ja" ? "ja" : language === "pt" ? "pt" : "en";
         const preferredVoice =
-          voices.find((v) => v.lang.startsWith(langPrefix) && (language === "ja" ? v.name.includes("Kyoko") : v.name.includes("Samantha"))) ||
-          voices.find((v) => v.lang.startsWith(langPrefix));
+          voices.find((v) => v.lang.startsWith(langPrefix)) ||
+          voices.find((v) => v.lang.startsWith(langPrefix.substring(0, 2)));
         if (preferredVoice) utterance.voice = preferredVoice;
         utterance.onend = () => resolve();
         utterance.onerror = () => resolve();
@@ -177,7 +195,7 @@ export function ChatInterface() {
       // Don't encourage if AI is already speaking or sending
       if (speakingLockRef.current || sendingRef.current) return;
 
-      const encouragements = language === "ja" ? ENCOURAGEMENTS_JA : ENCOURAGEMENTS_EN;
+      const encouragements = language === "ja" ? ENCOURAGEMENTS_JA : language === "pt" ? ENCOURAGEMENTS_PT : ENCOURAGEMENTS_EN;
       const idx = encourageCountRef.current % encouragements.length;
       const msg = encouragements[idx];
       encourageCountRef.current++;
@@ -325,6 +343,8 @@ export function ChatInterface() {
     encourageCountRef.current = 0;
     const greeting = language === "ja"
       ? "こんにちは。わたしはレッサーパンダのレッサーくんだよ。今日はどんなお話をしようか。好きなことや、今日あったことを教えてね。"
+      : language === "pt"
+      ? "Olá. Eu sou o Lesser-kun, um panda vermelho. Sobre o que vamos conversar hoje. Me conta algo que você gosta, ou o que aconteceu hoje."
       : "Hello. I'm Lesser-kun, a red panda. What shall we talk about today? Tell me about something you like, or what happened today.";
     setMessages([{ role: "assistant", content: greeting }]);
     await speak(greeting);
@@ -563,6 +583,8 @@ export function ChatInterface() {
           <p className="text-slate-400 mb-6 text-sm">
             {language === "ja"
               ? "レッサーパンダのレッサーくんとおはなしして、ことばのちからをのばそう！"
+              : language === "pt"
+              ? "Converse com o Lesser-kun, o panda vermelho, e melhore suas habilidades linguísticas!"
               : "Talk with Lesser-kun the red panda and grow your language skills!"}
           </p>
 
@@ -570,7 +592,7 @@ export function ChatInterface() {
           <div className="mb-4 flex justify-center gap-2">
             <button
               onClick={() => setLanguage("ja")}
-              className={`px-5 py-2 rounded-xl font-bold text-sm transition-all ${
+              className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
                 language === "ja"
                   ? "bg-gradient-to-r from-orange-400 to-pink-400 text-white shadow-md"
                   : "bg-white/60 text-slate-500 border border-slate-200"
@@ -580,7 +602,7 @@ export function ChatInterface() {
             </button>
             <button
               onClick={() => setLanguage("en")}
-              className={`px-5 py-2 rounded-xl font-bold text-sm transition-all ${
+              className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
                 language === "en"
                   ? "bg-gradient-to-r from-blue-400 to-indigo-400 text-white shadow-md"
                   : "bg-white/60 text-slate-500 border border-slate-200"
@@ -588,11 +610,21 @@ export function ChatInterface() {
             >
               🇺🇸 English
             </button>
+            <button
+              onClick={() => setLanguage("pt")}
+              className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
+                language === "pt"
+                  ? "bg-gradient-to-r from-green-500 to-yellow-400 text-white shadow-md"
+                  : "bg-white/60 text-slate-500 border border-slate-200"
+              }`}
+            >
+              🇧🇷 Português
+            </button>
           </div>
 
           <div className="mb-6">
             <label className="text-sm text-slate-500 font-bold block mb-1">
-              {language === "ja" ? "学年段階" : "Grade Level"}
+              {language === "ja" ? "学年段階" : language === "pt" ? "Nível escolar" : "Grade Level"}
             </label>
             <select
               value={gradeLevel}
@@ -610,7 +642,7 @@ export function ChatInterface() {
             onClick={startConversation}
             className="px-8 py-4 bg-gradient-to-r from-orange-400 to-pink-500 text-white text-xl font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
           >
-            {language === "ja" ? "おはなしを はじめる" : "Start Talking"}
+            {language === "ja" ? "おはなしを はじめる" : language === "pt" ? "Começar a conversar" : "Start Talking"}
           </button>
 
           <p className="mt-6 text-xs text-slate-400">
