@@ -696,7 +696,7 @@ export function ChatInterface() {
           ) : isLoading ? (
             <><span className="animate-pulse">🐾</span> レッサーくんがかんがえ中...</>
           ) : !micEnabled ? (
-            <>下のボタンをおして、はじめてね</>
+            <>上のボタンをおして、はじめてね</>
           ) : (
             <>じゅんびちゅう...</>
           )}
