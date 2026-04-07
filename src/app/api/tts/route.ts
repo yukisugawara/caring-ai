@@ -1,24 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { text } = await req.json();
+  const { text, language } = await req.json();
   const apiKey = process.env.GOOGLE_CLOUD_API_KEY;
 
   if (!apiKey) {
     return NextResponse.json({ error: "GOOGLE_CLOUD_API_KEY not set" }, { status: 500 });
   }
 
+  const isEnglish = language === "en";
+
   const body = {
     input: { text },
     voice: {
-      languageCode: "ja-JP",
-      name: "ja-JP-Wavenet-A", // Female, high quality wavenet voice
+      languageCode: isEnglish ? "en-US" : "ja-JP",
+      name: isEnglish ? "en-US-Wavenet-F" : "ja-JP-Wavenet-A",
       ssmlGender: "FEMALE",
     },
     audioConfig: {
       audioEncoding: "MP3",
-      speakingRate: 0.92,
-      pitch: 1.5,
+      speakingRate: isEnglish ? 0.88 : 0.92,
+      pitch: isEnglish ? 1.0 : 1.5,
     },
   };
 
@@ -38,6 +40,5 @@ export async function POST(req: NextRequest) {
   }
 
   const data = await res.json();
-  // data.audioContent is base64-encoded MP3
   return NextResponse.json({ audioContent: data.audioContent });
 }

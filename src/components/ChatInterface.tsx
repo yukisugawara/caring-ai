@@ -26,7 +26,7 @@ type AnalysisResult = {
 
 const SILENCE_TIMEOUT_MS = 10000;
 
-const ENCOURAGEMENTS = [
+const ENCOURAGEMENTS_JA = [
   "大丈夫だよ。自信を持って。",
   "ゆっくりでいいよ。レッサーくんが待っているからね。",
   "思ったことを、そのまま話してみてね。",
@@ -44,6 +44,24 @@ const ENCOURAGEMENTS = [
   "レッサーくんはいつでもきみの味方だよ。",
 ];
 
+const ENCOURAGEMENTS_EN = [
+  "It's okay. You can do it.",
+  "Take your time. Lesser-kun is waiting for you.",
+  "Just say what you're thinking.",
+  "It's okay to make mistakes. Let's try.",
+  "Anything is fine. Tell me about something you like.",
+  "What did you eat today? I'd love to know.",
+  "What's your favorite game? Tell Lesser-kun too.",
+  "Don't worry, you can talk about anything here.",
+  "Lesser-kun is so happy to hear your voice.",
+  "I'm having fun talking with you.",
+  "Any words are fine. Even just one word is great.",
+  "You're thinking quietly. That's wonderful too.",
+  "Happy things, sad things, you can talk about anything.",
+  "Your voice is really lovely. Let me hear more.",
+  "Lesser-kun is always on your side.",
+];
+
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -58,6 +76,7 @@ export function ChatInterface() {
   const [isAutoListening, setIsAutoListening] = useState(false);
   const [silenceWarning, setSilenceWarning] = useState("");
   const [micEnabled, setMicEnabled] = useState(false);
+  const [language, setLanguage] = useState<"ja" | "en">("ja");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
@@ -77,7 +96,7 @@ export function ChatInterface() {
     const SpeechRecognition = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SpeechRecognition) return null;
     const recognition = new SpeechRecognition();
-    recognition.lang = "ja-JP";
+    recognition.lang = language === "ja" ? "ja-JP" : "en-US";
     recognition.interimResults = true;
     recognition.continuous = true;
     return recognition;
@@ -106,7 +125,7 @@ export function ChatInterface() {
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, language }),
       });
       if (!res.ok) throw new Error("TTS API failed");
       const data = await res.json();
@@ -123,14 +142,15 @@ export function ChatInterface() {
       // Fallback to Web Speech API
       await new Promise<void>((resolve) => {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "ja-JP";
+        utterance.lang = language === "ja" ? "ja-JP" : "en-US";
         utterance.rate = 0.9;
         utterance.pitch = 1.2;
         const voices = window.speechSynthesis.getVoices();
-        const jpVoice =
-          voices.find((v) => v.lang.startsWith("ja") && v.name.includes("Kyoko")) ||
-          voices.find((v) => v.lang.startsWith("ja"));
-        if (jpVoice) utterance.voice = jpVoice;
+        const langPrefix = language === "ja" ? "ja" : "en";
+        const preferredVoice =
+          voices.find((v) => v.lang.startsWith(langPrefix) && (language === "ja" ? v.name.includes("Kyoko") : v.name.includes("Samantha"))) ||
+          voices.find((v) => v.lang.startsWith(langPrefix));
+        if (preferredVoice) utterance.voice = preferredVoice;
         utterance.onend = () => resolve();
         utterance.onerror = () => resolve();
         window.speechSynthesis.speak(utterance);
@@ -139,7 +159,7 @@ export function ChatInterface() {
       setIsSpeaking(false);
       speakingLockRef.current = false;
     }
-  }, []);
+  }, [language]);
 
   // Clear silence timer
   const clearSilenceTimer = useCallback(() => {
@@ -157,14 +177,15 @@ export function ChatInterface() {
       // Don't encourage if AI is already speaking or sending
       if (speakingLockRef.current || sendingRef.current) return;
 
-      const idx = encourageCountRef.current % ENCOURAGEMENTS.length;
-      const msg = ENCOURAGEMENTS[idx];
+      const encouragements = language === "ja" ? ENCOURAGEMENTS_JA : ENCOURAGEMENTS_EN;
+      const idx = encourageCountRef.current % encouragements.length;
+      const msg = encouragements[idx];
       encourageCountRef.current++;
       setSilenceWarning(msg);
       // Use the main speak function (respects lock)
       await speak(msg);
     }, SILENCE_TIMEOUT_MS);
-  }, [clearSilenceTimer, speak]);
+  }, [clearSilenceTimer, speak, language]);
 
   // Refs for managing recognition lifecycle
   const accumulatedRef = useRef("");
@@ -253,7 +274,7 @@ export function ChatInterface() {
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: newMessages }),
+          body: JSON.stringify({ messages: newMessages, language }),
         });
         const data = await res.json();
         const aiMessage: Message = { role: "assistant", content: data.text };
@@ -302,7 +323,9 @@ export function ChatInterface() {
   const startConversation = useCallback(async () => {
     setIsStarted(true);
     encourageCountRef.current = 0;
-    const greeting = "こんにちは。わたしはレッサーパンダのレッサーくんだよ。今日はどんなお話をしようか。好きなことや、今日あったことを教えてね。";
+    const greeting = language === "ja"
+      ? "こんにちは。わたしはレッサーパンダのレッサーくんだよ。今日はどんなお話をしようか。好きなことや、今日あったことを教えてね。"
+      : "Hello. I'm Lesser-kun, a red panda. What shall we talk about today? Tell me about something you like, or what happened today.";
     setMessages([{ role: "assistant", content: greeting }]);
     await speak(greeting);
     // Don't auto-start mic - wait for teacher to press the button
@@ -339,7 +362,7 @@ export function ChatInterface() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcript: childUtterances, gradeLevel }),
+        body: JSON.stringify({ transcript: childUtterances, gradeLevel, language }),
       });
       const data = await res.json();
       if (!data.error) setAnalysisResult(data);
@@ -538,11 +561,39 @@ export function ChatInterface() {
           </h1>
           <p className="text-lg text-slate-500 mb-1">ことばの対話パートナー</p>
           <p className="text-slate-400 mb-6 text-sm">
-            レッサーパンダのレッサーくんとおはなしして、ことばのちからをのばそう！
+            {language === "ja"
+              ? "レッサーパンダのレッサーくんとおはなしして、ことばのちからをのばそう！"
+              : "Talk with Lesser-kun the red panda and grow your language skills!"}
           </p>
 
+          {/* Language selector */}
+          <div className="mb-4 flex justify-center gap-2">
+            <button
+              onClick={() => setLanguage("ja")}
+              className={`px-5 py-2 rounded-xl font-bold text-sm transition-all ${
+                language === "ja"
+                  ? "bg-gradient-to-r from-orange-400 to-pink-400 text-white shadow-md"
+                  : "bg-white/60 text-slate-500 border border-slate-200"
+              }`}
+            >
+              🇯🇵 日本語
+            </button>
+            <button
+              onClick={() => setLanguage("en")}
+              className={`px-5 py-2 rounded-xl font-bold text-sm transition-all ${
+                language === "en"
+                  ? "bg-gradient-to-r from-blue-400 to-indigo-400 text-white shadow-md"
+                  : "bg-white/60 text-slate-500 border border-slate-200"
+              }`}
+            >
+              🇺🇸 English
+            </button>
+          </div>
+
           <div className="mb-6">
-            <label className="text-sm text-slate-500 font-bold block mb-1">学年段階</label>
+            <label className="text-sm text-slate-500 font-bold block mb-1">
+              {language === "ja" ? "学年段階" : "Grade Level"}
+            </label>
             <select
               value={gradeLevel}
               onChange={(e) => setGradeLevel(e.target.value)}
@@ -559,7 +610,7 @@ export function ChatInterface() {
             onClick={startConversation}
             className="px-8 py-4 bg-gradient-to-r from-orange-400 to-pink-500 text-white text-xl font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
           >
-            おはなしを はじめる
+            {language === "ja" ? "おはなしを はじめる" : "Start Talking"}
           </button>
 
           <p className="mt-6 text-xs text-slate-400">

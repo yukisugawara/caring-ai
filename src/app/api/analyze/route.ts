@@ -3,15 +3,17 @@ import { NextRequest, NextResponse } from "next/server";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-export async function POST(req: NextRequest) {
-  const { transcript, gradeLevel } = await req.json();
+function buildAnalyzePrompt(gradeLevel: string, language: string): string {
+  const targetLang = language === "en" ? "English" : "Japanese";
+  const langLabel = language === "en" ? "英語" : "日本語";
 
-  const systemPrompt = `あなたは「ことばの力のものさし」（文部科学省, 2025年）に基づいて、\
-児童生徒の日本語の発話を評価する専門家です。
+  return `あなたは「ことばの力のものさし」（文部科学省, 2025年）に基づいて、\
+児童生徒の${langLabel}の発話を評価する専門家です。
 
-対話型AIとの会話から抽出された児童生徒の発話テキストが与えられます。
+対話型AIとの会話から抽出された児童生徒の発話テキスト（${targetLang}）が与えられます。
 対象の学年段階は「${gradeLevel}」です。
 「聞く・話す」の観点から、以下の2つの軸で評価してください。
+※ 「ことばの力のものさし」は多言語に対応した枠組みです。${targetLang}の発話に対しても同じステージ基準を適用してください。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ## 軸1: 包括的なことばの発達ステージ（A〜F）
@@ -25,19 +27,20 @@ export async function POST(req: NextRequest) {
 - ステージF【評価・発展期】: 多角的・批判的視点をもった議論ができる。論理的構成を意識し説得力のある意見を述べられる。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## 軸2: 日本語の習得ステップ（1〜8）
-日本語固有の知識・技能の習得状況を評価します。
+## 軸2: ${langLabel}の習得ステップ（1〜8）
+${langLabel}固有の知識・技能の習得状況を評価します。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ## 追加の分析観点
 - コミュニケーション方略: 言い換えや迂回表現の使用
 - コードスイッチング: L1/L2の混用パターン
 - 相互行為能力: 応答の適切さ、相槌の使用
-- 言語的創造性: オノマトペ、言葉遊び、創造的表現
+- 言語的創造性: 創造的な表現、言葉遊び
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ## 出力フォーマット（厳守）
 挨拶・前置き・説明文などは一切含めず、純粋な JSON だけを出力してください。
+フィードバックはすべて日本語で記述してください。
 
 \`\`\`json
 {
@@ -56,6 +59,12 @@ export async function POST(req: NextRequest) {
   "encouragement": "<子ども本人へのやさしい励ましメッセージ（日本語、1〜2文、ひらがな多め）>"
 }
 \`\`\``;
+}
+
+export async function POST(req: NextRequest) {
+  const { transcript, gradeLevel, language } = await req.json();
+
+  const systemPrompt = buildAnalyzePrompt(gradeLevel, language || "ja");
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-20250514",
@@ -66,7 +75,6 @@ export async function POST(req: NextRequest) {
 
   const raw = response.content[0].type === "text" ? response.content[0].text : "";
 
-  // Parse JSON from response
   const match = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
   const textToParse = match ? match[1].trim() : raw.trim();
 
