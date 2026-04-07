@@ -8,11 +8,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "GOOGLE_CLOUD_API_KEY not set" }, { status: 500 });
   }
 
-  const voiceConfig = language === "pt"
-    ? { languageCode: "pt-BR", name: "pt-BR-Wavenet-A", speakingRate: 0.90, pitch: 1.0 }
-    : language === "en"
-    ? { languageCode: "en-US", name: "en-US-Wavenet-F", speakingRate: 0.88, pitch: 1.0 }
-    : { languageCode: "ja-JP", name: "ja-JP-Wavenet-A", speakingRate: 0.92, pitch: 1.5 };
+  const VOICE_CONFIGS: Record<string, { languageCode: string; name: string; speakingRate: number; pitch: number }> = {
+    ja: { languageCode: "ja-JP", name: "ja-JP-Wavenet-A", speakingRate: 0.92, pitch: 1.5 },
+    en: { languageCode: "en-US", name: "en-US-Wavenet-F", speakingRate: 0.88, pitch: 1.0 },
+    pt: { languageCode: "pt-BR", name: "pt-BR-Wavenet-A", speakingRate: 0.90, pitch: 1.0 },
+    vi: { languageCode: "vi-VN", name: "vi-VN-Wavenet-A", speakingRate: 0.90, pitch: 1.0 },
+  };
+  const voiceConfig = VOICE_CONFIGS[language] || VOICE_CONFIGS.ja;
 
   const body = {
     input: { text },

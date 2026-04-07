@@ -3,51 +3,53 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
 
-type Lang = "ja" | "en" | "pt";
+type Lang = "ja" | "en" | "pt" | "vi";
 
 const UI: Record<string, Record<Lang, string>> = {
-  subtitle: { ja: "ことばの対話パートナー", en: "Language Conversation Partner", pt: "Parceiro de Conversação" },
+  subtitle: { ja: "ことばの対話パートナー", en: "Language Conversation Partner", pt: "Parceiro de Conversação", vi: "Bạn đồng hành ngôn ngữ" },
   description: {
     ja: "レッサーパンダのレッサーくんとおはなしして、ことばのちからをのばそう！",
     en: "Talk with Lesser-kun the red panda and grow your language skills!",
     pt: "Converse com o Lesser-kun, o panda vermelho, e melhore suas habilidades linguísticas!",
+    vi: "Trò chuyện với Lesser-kun, chú gấu trúc đỏ, và phát triển khả năng ngôn ngữ của bạn!",
   },
-  gradeLabel: { ja: "学年段階", en: "Grade Level", pt: "Nível escolar" },
-  startBtn: { ja: "おはなしを はじめる", en: "Start Talking", pt: "Começar a conversar" },
+  gradeLabel: { ja: "学年段階", en: "Grade Level", pt: "Nível escolar", vi: "Cấp học" },
+  startBtn: { ja: "おはなしを はじめる", en: "Start Talking", pt: "Começar a conversar", vi: "Bắt đầu nói chuyện" },
   micNote: {
     ja: "マイクを使います。ブラウザの許可が必要です。\nGoogle Chrome での利用を推奨します。",
     en: "Requires microphone access.\nGoogle Chrome is recommended.",
     pt: "Requer acesso ao microfone.\nRecomenda-se o Google Chrome.",
+    vi: "Cần quyền truy cập micrô.\nĐề nghị sử dụng Google Chrome.",
   },
-  enableMic: { ja: "🎤 マイクをオンにする", en: "🎤 Turn on Microphone", pt: "🎤 Ligar Microfone" },
-  endBtn: { ja: "🏁 おはなし おわり", en: "🏁 End Talk", pt: "🏁 Terminar" },
-  sendHint: { ja: "きいているよ。おわったら ✉️ をおしてね", en: "Listening. Press ✉️ when done", pt: "Ouvindo. Aperte ✉️ quando terminar" },
-  speaking: { ja: "レッサーくんがおはなし中...", en: "Lesser-kun is talking...", pt: "Lesser-kun está falando..." },
-  thinking: { ja: "レッサーくんがかんがえ中...", en: "Lesser-kun is thinking...", pt: "Lesser-kun está pensando..." },
-  waitMic: { ja: "上のボタンをおして、はじめてね", en: "Press the button above to start", pt: "Aperte o botão acima para começar" },
-  preparing: { ja: "じゅんびちゅう...", en: "Preparing...", pt: "Preparando..." },
-  finishedTitle: { ja: "おはなし、おしまい！", en: "Great talk!", pt: "Ótima conversa!" },
-  finishedSub: { ja: "たくさんおはなしできたね！", en: "You did a great job!", pt: "Você foi muito bem!" },
-  fromLesser: { ja: "レッサーくんより", en: "From Lesser-kun", pt: "Do Lesser-kun" },
-  analyzing: { ja: "おはなしの分析をしています...", en: "Analyzing the conversation...", pt: "Analisando a conversa..." },
-  stageLabel: { ja: "ことばの発達ステージ", en: "Language Development Stage", pt: "Estágio de Desenvolvimento Linguístico" },
-  stagePosition: { ja: "ことばの発達ステージ — 全体の中の位置", en: "Language Development Stage — Position", pt: "Estágio de Desenvolvimento — Posição" },
-  stepLabel: { ja: "習得ステップ", en: "Acquisition Step", pt: "Etapa de Aquisição" },
-  stepPosition: { ja: "習得ステップ — 全体の中の位置", en: "Acquisition Step — Position", pt: "Etapa de Aquisição — Posição" },
-  stageReason: { ja: "ステージ判定の根拠", en: "Stage Assessment Rationale", pt: "Fundamentação do Estágio" },
-  stepReason: { ja: "ステップ判定の根拠", en: "Step Assessment Rationale", pt: "Fundamentação da Etapa" },
-  strengths: { ja: "💪 つよみ", en: "💪 Strengths", pt: "💪 Pontos fortes" },
-  goals: { ja: "🎯 つぎのもくひょう", en: "🎯 Next Goals", pt: "🎯 Próximos objetivos" },
-  support: { ja: "📖 せんせいへ", en: "📖 For Teachers", pt: "📖 Para professores" },
-  commStrategy: { ja: "💡 コミュニケーション方略", en: "💡 Communication Strategies", pt: "💡 Estratégias de Comunicação" },
-  codeSwitch: { ja: "🌐 コードスイッチング", en: "🌐 Code-switching", pt: "🌐 Alternância de código" },
-  interactive: { ja: "🤝 相互行為能力", en: "🤝 Interactive Competence", pt: "🤝 Competência Interativa" },
-  creativity: { ja: "✨ 言語的創造性", en: "✨ Linguistic Creativity", pt: "✨ Criatividade Linguística" },
-  chatLog: { ja: "💬 おはなしのきろく", en: "💬 Conversation Log", pt: "💬 Registro da conversa" },
-  you: { ja: "あなた", en: "You", pt: "Você" },
-  restart: { ja: "もういちど おはなしする", en: "Talk Again", pt: "Conversar novamente" },
-  stageOf6: { ja: "（全6段階中）", en: "(of 6 stages)", pt: "(de 6 estágios)" },
-  stepOf8: { ja: "（全8段階中）", en: "(of 8 steps)", pt: "(de 8 etapas)" },
+  enableMic: { ja: "🎤 マイクをオンにする", en: "🎤 Turn on Microphone", pt: "🎤 Ligar Microfone", vi: "🎤 Bật micrô" },
+  endBtn: { ja: "🏁 おはなし おわり", en: "🏁 End Talk", pt: "🏁 Terminar", vi: "🏁 Kết thúc" },
+  sendHint: { ja: "きいているよ。おわったら ✉️ をおしてね", en: "Listening. Press ✉️ when done", pt: "Ouvindo. Aperte ✉️ quando terminar", vi: "Đang nghe. Nhấn ✉️ khi nói xong" },
+  speaking: { ja: "レッサーくんがおはなし中...", en: "Lesser-kun is talking...", pt: "Lesser-kun está falando...", vi: "Lesser-kun đang nói..." },
+  thinking: { ja: "レッサーくんがかんがえ中...", en: "Lesser-kun is thinking...", pt: "Lesser-kun está pensando...", vi: "Lesser-kun đang suy nghĩ..." },
+  waitMic: { ja: "上のボタンをおして、はじめてね", en: "Press the button above to start", pt: "Aperte o botão acima para começar", vi: "Nhấn nút ở trên để bắt đầu" },
+  preparing: { ja: "じゅんびちゅう...", en: "Preparing...", pt: "Preparando...", vi: "Đang chuẩn bị..." },
+  finishedTitle: { ja: "おはなし、おしまい！", en: "Great talk!", pt: "Ótima conversa!", vi: "Cuộc trò chuyện tuyệt vời!" },
+  finishedSub: { ja: "たくさんおはなしできたね！", en: "You did a great job!", pt: "Você foi muito bem!", vi: "Bạn đã làm rất tốt!" },
+  fromLesser: { ja: "レッサーくんより", en: "From Lesser-kun", pt: "Do Lesser-kun", vi: "Từ Lesser-kun" },
+  analyzing: { ja: "おはなしの分析をしています...", en: "Analyzing the conversation...", pt: "Analisando a conversa...", vi: "Đang phân tích cuộc trò chuyện..." },
+  stageLabel: { ja: "ことばの発達ステージ", en: "Language Development Stage", pt: "Estágio de Desenvolvimento Linguístico", vi: "Giai đoạn phát triển ngôn ngữ" },
+  stagePosition: { ja: "ことばの発達ステージ — 全体の中の位置", en: "Language Development Stage — Position", pt: "Estágio de Desenvolvimento — Posição", vi: "Giai đoạn phát triển — Vị trí" },
+  stepLabel: { ja: "習得ステップ", en: "Acquisition Step", pt: "Etapa de Aquisição", vi: "Bước tiếp thu" },
+  stepPosition: { ja: "習得ステップ — 全体の中の位置", en: "Acquisition Step — Position", pt: "Etapa de Aquisição — Posição", vi: "Bước tiếp thu — Vị trí" },
+  stageReason: { ja: "ステージ判定の根拠", en: "Stage Assessment Rationale", pt: "Fundamentação do Estágio", vi: "Căn cứ đánh giá giai đoạn" },
+  stepReason: { ja: "ステップ判定の根拠", en: "Step Assessment Rationale", pt: "Fundamentação da Etapa", vi: "Căn cứ đánh giá bước" },
+  strengths: { ja: "💪 つよみ", en: "💪 Strengths", pt: "💪 Pontos fortes", vi: "💪 Điểm mạnh" },
+  goals: { ja: "🎯 つぎのもくひょう", en: "🎯 Next Goals", pt: "🎯 Próximos objetivos", vi: "🎯 Mục tiêu tiếp theo" },
+  support: { ja: "📖 せんせいへ", en: "📖 For Teachers", pt: "📖 Para professores", vi: "📖 Dành cho giáo viên" },
+  commStrategy: { ja: "💡 コミュニケーション方略", en: "💡 Communication Strategies", pt: "💡 Estratégias de Comunicação", vi: "💡 Chiến lược giao tiếp" },
+  codeSwitch: { ja: "🌐 コードスイッチング", en: "🌐 Code-switching", pt: "🌐 Alternância de código", vi: "🌐 Chuyển mã ngôn ngữ" },
+  interactive: { ja: "🤝 相互行為能力", en: "🤝 Interactive Competence", pt: "🤝 Competência Interativa", vi: "🤝 Năng lực tương tác" },
+  creativity: { ja: "✨ 言語的創造性", en: "✨ Linguistic Creativity", pt: "✨ Criatividade Linguística", vi: "✨ Sáng tạo ngôn ngữ" },
+  chatLog: { ja: "💬 おはなしのきろく", en: "💬 Conversation Log", pt: "💬 Registro da conversa", vi: "💬 Nhật ký trò chuyện" },
+  you: { ja: "あなた", en: "You", pt: "Você", vi: "Bạn" },
+  restart: { ja: "もういちど おはなしする", en: "Talk Again", pt: "Conversar novamente", vi: "Nói chuyện lại" },
+  stageOf6: { ja: "（全6段階中）", en: "(of 6 stages)", pt: "(de 6 estágios)", vi: "(trong 6 giai đoạn)" },
+  stepOf8: { ja: "（全8段階中）", en: "(of 8 steps)", pt: "(de 8 etapas)", vi: "(trong 8 bước)" },
 };
 
 type Message = {
@@ -109,6 +111,24 @@ const ENCOURAGEMENTS_EN = [
   "Lesser-kun is always on your side.",
 ];
 
+const ENCOURAGEMENTS_VI = [
+  "Không sao đâu. Bạn làm được mà.",
+  "Từ từ thôi nhé. Lesser-kun đang đợi bạn.",
+  "Cứ nói những gì bạn đang nghĩ nhé.",
+  "Sai cũng không sao. Hãy thử nhé.",
+  "Gì cũng được. Kể cho mình nghe điều bạn thích.",
+  "Hôm nay bạn ăn gì. Mình muốn biết lắm.",
+  "Trò chơi yêu thích của bạn là gì. Kể cho Lesser-kun nghe nhé.",
+  "Đừng lo, ở đây bạn có thể nói về bất cứ điều gì.",
+  "Lesser-kun rất vui khi được nghe giọng của bạn.",
+  "Mình rất vui khi được nói chuyện với bạn.",
+  "Từ nào cũng được. Chỉ một từ thôi cũng tuyệt rồi.",
+  "Bạn đang suy nghĩ trong im lặng. Điều đó cũng rất tuyệt.",
+  "Chuyện vui, chuyện buồn, bạn có thể nói về bất cứ điều gì.",
+  "Giọng của bạn rất dễ thương. Cho mình nghe thêm nhé.",
+  "Lesser-kun luôn ở bên bạn.",
+];
+
 const ENCOURAGEMENTS_PT = [
   "Tudo bem. Você consegue.",
   "Pode ir devagar. O Lesser-kun está esperando por você.",
@@ -141,7 +161,7 @@ export function ChatInterface() {
   const [isAutoListening, setIsAutoListening] = useState(false);
   const [silenceWarning, setSilenceWarning] = useState("");
   const [micEnabled, setMicEnabled] = useState(false);
-  const [language, setLanguage] = useState<"ja" | "en" | "pt">("ja");
+  const [language, setLanguage] = useState<Lang>("ja");
   const [uiLang, setUiLang] = useState<Lang>("ja");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -162,7 +182,8 @@ export function ChatInterface() {
     const SpeechRecognition = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SpeechRecognition) return null;
     const recognition = new SpeechRecognition();
-    recognition.lang = language === "ja" ? "ja-JP" : language === "pt" ? "pt-BR" : "en-US";
+    const LANG_CODES: Record<Lang, string> = { ja: "ja-JP", en: "en-US", pt: "pt-BR", vi: "vi-VN" };
+    recognition.lang = LANG_CODES[language];
     recognition.interimResults = true;
     recognition.continuous = true;
     return recognition;
@@ -208,11 +229,12 @@ export function ChatInterface() {
       // Fallback to Web Speech API
       await new Promise<void>((resolve) => {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = language === "ja" ? "ja-JP" : language === "pt" ? "pt-BR" : "en-US";
+        const FALLBACK_LANGS: Record<Lang, string> = { ja: "ja-JP", en: "en-US", pt: "pt-BR", vi: "vi-VN" };
+        utterance.lang = FALLBACK_LANGS[language];
         utterance.rate = 0.9;
         utterance.pitch = 1.2;
         const voices = window.speechSynthesis.getVoices();
-        const langPrefix = language === "ja" ? "ja" : language === "pt" ? "pt" : "en";
+        const langPrefix = language.substring(0, 2);
         const preferredVoice =
           voices.find((v) => v.lang.startsWith(langPrefix)) ||
           voices.find((v) => v.lang.startsWith(langPrefix.substring(0, 2)));
@@ -243,7 +265,8 @@ export function ChatInterface() {
       // Don't encourage if AI is already speaking or sending
       if (speakingLockRef.current || sendingRef.current) return;
 
-      const encouragements = language === "ja" ? ENCOURAGEMENTS_JA : language === "pt" ? ENCOURAGEMENTS_PT : ENCOURAGEMENTS_EN;
+      const ENCMAP: Record<Lang, string[]> = { ja: ENCOURAGEMENTS_JA, en: ENCOURAGEMENTS_EN, pt: ENCOURAGEMENTS_PT, vi: ENCOURAGEMENTS_VI };
+      const encouragements = ENCMAP[language];
       const idx = encourageCountRef.current % encouragements.length;
       const msg = encouragements[idx];
       encourageCountRef.current++;
@@ -389,11 +412,13 @@ export function ChatInterface() {
   const startConversation = useCallback(async () => {
     setIsStarted(true);
     encourageCountRef.current = 0;
-    const greeting = language === "ja"
-      ? "こんにちは。わたしはレッサーパンダのレッサーくんだよ。今日はどんなお話をしようか。好きなことや、今日あったことを教えてね。"
-      : language === "pt"
-      ? "Olá. Eu sou o Lesser-kun, um panda vermelho. Sobre o que vamos conversar hoje. Me conta algo que você gosta, ou o que aconteceu hoje."
-      : "Hello. I'm Lesser-kun, a red panda. What shall we talk about today? Tell me about something you like, or what happened today.";
+    const GREETINGS: Record<Lang, string> = {
+      ja: "こんにちは。わたしはレッサーパンダのレッサーくんだよ。今日はどんなお話をしようか。好きなことや、今日あったことを教えてね。",
+      en: "Hello. I'm Lesser-kun, a red panda. What shall we talk about today. Tell me about something you like, or what happened today.",
+      pt: "Olá. Eu sou o Lesser-kun, um panda vermelho. Sobre o que vamos conversar hoje. Me conta algo que você gosta, ou o que aconteceu hoje.",
+      vi: "Xin chào. Mình là Lesser-kun, một chú gấu trúc đỏ. Hôm nay chúng mình nói chuyện về gì nhé. Kể cho mình nghe điều bạn thích, hoặc chuyện gì đã xảy ra hôm nay nhé.",
+    };
+    const greeting = GREETINGS[language];
     setMessages([{ role: "assistant", content: greeting }]);
     await speak(greeting);
     // Don't auto-start mic - wait for teacher to press the button
@@ -628,10 +653,10 @@ export function ChatInterface() {
   // ===== Start screen =====
   if (!isStarted) {
     const GRADE_LABELS: Record<string, Record<Lang, string>> = {
-      "小1〜小2段階": { ja: "小1〜小2段階", en: "Grade 1-2", pt: "1º-2º ano" },
-      "小3〜小4段階": { ja: "小3〜小4段階", en: "Grade 3-4", pt: "3º-4º ano" },
-      "小5〜中2段階": { ja: "小5〜中2段階", en: "Grade 5-8", pt: "5º-8º ano" },
-      "中3〜高校段階": { ja: "中3〜高校段階", en: "Grade 9-12", pt: "9º ano-Ensino Médio" },
+      "小1〜小2段階": { ja: "小1〜小2段階", en: "Grade 1-2", pt: "1º-2º ano", vi: "Lớp 1-2" },
+      "小3〜小4段階": { ja: "小3〜小4段階", en: "Grade 3-4", pt: "3º-4º ano", vi: "Lớp 3-4" },
+      "小5〜中2段階": { ja: "小5〜中2段階", en: "Grade 5-8", pt: "5º-8º ano", vi: "Lớp 5-8" },
+      "中3〜高校段階": { ja: "中3〜高校段階", en: "Grade 9-12", pt: "9º ano-Ensino Médio", vi: "Lớp 9-12" },
     };
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8">
@@ -653,10 +678,10 @@ export function ChatInterface() {
             {/* UI Language selector */}
             <div>
               <label className="text-xs text-slate-400 font-black block mb-2 tracking-wide">
-                {uiLang === "ja" ? "表示言語" : uiLang === "pt" ? "Idioma da tela" : "Display Language"}
+                {uiLang === "ja" ? "表示言語" : uiLang === "pt" ? "Idioma da tela" : uiLang === "vi" ? "Ngôn ngữ hiển thị" : "Display Language"}
               </label>
               <div className="flex justify-center gap-2">
-                {(["ja", "en", "pt"] as const).map((l) => (
+                {(["ja", "en", "pt", "vi"] as const).map((l) => (
                   <button
                     key={l}
                     onClick={() => setUiLang(l)}
@@ -666,7 +691,7 @@ export function ChatInterface() {
                         : "bg-white/80 text-slate-400 border-2 border-slate-100 shadow-none"
                     }`}
                   >
-                    {l === "ja" ? "日本語" : l === "en" ? "English" : "Português"}
+                    {l === "ja" ? "日本語" : l === "en" ? "English" : l === "pt" ? "Português" : "Tiếng Việt"}
                   </button>
                 ))}
               </div>
@@ -675,14 +700,15 @@ export function ChatInterface() {
             {/* Conversation language selector */}
             <div>
               <label className="text-xs text-slate-400 font-black block mb-2 tracking-wide">
-                {uiLang === "ja" ? "おはなしの言語" : uiLang === "pt" ? "Idioma da conversa" : "Conversation Language"}
+                {uiLang === "ja" ? "おはなしの言語" : uiLang === "pt" ? "Idioma da conversa" : uiLang === "vi" ? "Ngôn ngữ trò chuyện" : "Conversation Language"}
               </label>
               <div className="flex justify-center gap-2">
-                {(["ja", "en", "pt"] as const).map((l) => {
+                {(["ja", "en", "pt", "vi"] as const).map((l) => {
                   const colors: Record<string, string> = {
                     ja: "from-orange-400 to-pink-400",
                     en: "from-blue-400 to-indigo-400",
                     pt: "from-green-400 to-teal-400",
+                    vi: "from-red-400 to-yellow-400",
                   };
                   return (
                     <button
@@ -694,7 +720,7 @@ export function ChatInterface() {
                           : "bg-white/80 text-slate-400 border-2 border-slate-100 shadow-none"
                       }`}
                     >
-                      {l === "ja" ? "日本語" : l === "en" ? "English" : "Português"}
+                      {l === "ja" ? "日本語" : l === "en" ? "English" : l === "pt" ? "Português" : "Tiếng Việt"}
                     </button>
                   );
                 })}
