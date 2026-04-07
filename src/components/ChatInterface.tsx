@@ -3,6 +3,53 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
 
+type Lang = "ja" | "en" | "pt";
+
+const UI: Record<string, Record<Lang, string>> = {
+  subtitle: { ja: "ことばの対話パートナー", en: "Language Conversation Partner", pt: "Parceiro de Conversação" },
+  description: {
+    ja: "レッサーパンダのレッサーくんとおはなしして、ことばのちからをのばそう！",
+    en: "Talk with Lesser-kun the red panda and grow your language skills!",
+    pt: "Converse com o Lesser-kun, o panda vermelho, e melhore suas habilidades linguísticas!",
+  },
+  gradeLabel: { ja: "学年段階", en: "Grade Level", pt: "Nível escolar" },
+  startBtn: { ja: "おはなしを はじめる", en: "Start Talking", pt: "Começar a conversar" },
+  micNote: {
+    ja: "マイクを使います。ブラウザの許可が必要です。\nGoogle Chrome での利用を推奨します。",
+    en: "Requires microphone access.\nGoogle Chrome is recommended.",
+    pt: "Requer acesso ao microfone.\nRecomenda-se o Google Chrome.",
+  },
+  enableMic: { ja: "🎤 マイクをオンにする", en: "🎤 Turn on Microphone", pt: "🎤 Ligar Microfone" },
+  endBtn: { ja: "🏁 おはなし おわり", en: "🏁 End Talk", pt: "🏁 Terminar" },
+  sendHint: { ja: "きいているよ。おわったら ✉️ をおしてね", en: "Listening. Press ✉️ when done", pt: "Ouvindo. Aperte ✉️ quando terminar" },
+  speaking: { ja: "レッサーくんがおはなし中...", en: "Lesser-kun is talking...", pt: "Lesser-kun está falando..." },
+  thinking: { ja: "レッサーくんがかんがえ中...", en: "Lesser-kun is thinking...", pt: "Lesser-kun está pensando..." },
+  waitMic: { ja: "上のボタンをおして、はじめてね", en: "Press the button above to start", pt: "Aperte o botão acima para começar" },
+  preparing: { ja: "じゅんびちゅう...", en: "Preparing...", pt: "Preparando..." },
+  finishedTitle: { ja: "おはなし、おしまい！", en: "Great talk!", pt: "Ótima conversa!" },
+  finishedSub: { ja: "たくさんおはなしできたね！", en: "You did a great job!", pt: "Você foi muito bem!" },
+  fromLesser: { ja: "レッサーくんより", en: "From Lesser-kun", pt: "Do Lesser-kun" },
+  analyzing: { ja: "おはなしの分析をしています...", en: "Analyzing the conversation...", pt: "Analisando a conversa..." },
+  stageLabel: { ja: "ことばの発達ステージ", en: "Language Development Stage", pt: "Estágio de Desenvolvimento Linguístico" },
+  stagePosition: { ja: "ことばの発達ステージ — 全体の中の位置", en: "Language Development Stage — Position", pt: "Estágio de Desenvolvimento — Posição" },
+  stepLabel: { ja: "習得ステップ", en: "Acquisition Step", pt: "Etapa de Aquisição" },
+  stepPosition: { ja: "習得ステップ — 全体の中の位置", en: "Acquisition Step — Position", pt: "Etapa de Aquisição — Posição" },
+  stageReason: { ja: "ステージ判定の根拠", en: "Stage Assessment Rationale", pt: "Fundamentação do Estágio" },
+  stepReason: { ja: "ステップ判定の根拠", en: "Step Assessment Rationale", pt: "Fundamentação da Etapa" },
+  strengths: { ja: "💪 つよみ", en: "💪 Strengths", pt: "💪 Pontos fortes" },
+  goals: { ja: "🎯 つぎのもくひょう", en: "🎯 Next Goals", pt: "🎯 Próximos objetivos" },
+  support: { ja: "📖 せんせいへ", en: "📖 For Teachers", pt: "📖 Para professores" },
+  commStrategy: { ja: "💡 コミュニケーション方略", en: "💡 Communication Strategies", pt: "💡 Estratégias de Comunicação" },
+  codeSwitch: { ja: "🌐 コードスイッチング", en: "🌐 Code-switching", pt: "🌐 Alternância de código" },
+  interactive: { ja: "🤝 相互行為能力", en: "🤝 Interactive Competence", pt: "🤝 Competência Interativa" },
+  creativity: { ja: "✨ 言語的創造性", en: "✨ Linguistic Creativity", pt: "✨ Criatividade Linguística" },
+  chatLog: { ja: "💬 おはなしのきろく", en: "💬 Conversation Log", pt: "💬 Registro da conversa" },
+  you: { ja: "あなた", en: "You", pt: "Você" },
+  restart: { ja: "もういちど おはなしする", en: "Talk Again", pt: "Conversar novamente" },
+  stageOf6: { ja: "（全6段階中）", en: "(of 6 stages)", pt: "(de 6 estágios)" },
+  stepOf8: { ja: "（全8段階中）", en: "(of 8 steps)", pt: "(de 8 etapas)" },
+};
+
 type Message = {
   role: "user" | "assistant";
   content: string;
@@ -410,16 +457,16 @@ export function ChatInterface() {
           <div className="text-center">
             <Image src="/red-panda.webp" alt="レッサーくん" width={80} height={80} className="mx-auto rounded-full" />
             <h2 className="text-2xl font-black mt-2 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-              おはなし、おしまい！
+              {UI.finishedTitle[language]}
             </h2>
-            <p className="text-slate-500 mt-1">たくさんおはなしできたね！</p>
+            <p className="text-slate-500 mt-1">{UI.finishedSub[language]}</p>
           </div>
 
           {analysisResult?.encouragement && (
             <div className="flex items-start gap-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-4 border border-orange-200">
               <Image src="/red-panda.webp" alt="レッサーくん" width={48} height={48} className="rounded-full" />
               <div>
-                <div className="text-xs font-bold text-orange-500 mb-1">レッサーくんより</div>
+                <div className="text-xs font-bold text-orange-500 mb-1">{UI.fromLesser[language]}</div>
                 <p className="text-slate-700 leading-relaxed">{analysisResult.encouragement}</p>
               </div>
             </div>
@@ -428,7 +475,7 @@ export function ChatInterface() {
           {isAnalyzing && (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-200 border-t-orange-500 mb-3" />
-              <p className="text-slate-500">おはなしの分析をしています...</p>
+              <p className="text-slate-500">{UI.analyzing[language]}</p>
             </div>
           )}
 
@@ -436,7 +483,7 @@ export function ChatInterface() {
             <>
               {/* Stage position indicator */}
               <div className="bg-white/70 backdrop-blur rounded-2xl p-5 border border-white/80 shadow-sm">
-                <div className="text-xs font-bold text-slate-400 mb-2">ことばの発達ステージ — 全体の中の位置</div>
+                <div className="text-xs font-bold text-slate-400 mb-2">{UI.stagePosition[language]}</div>
                 <div className="flex gap-1.5 mb-3">
                   {(["A", "B", "C", "D", "E", "F"] as const).map((s) => {
                     const isActive = s === analysisResult.stage;
@@ -459,13 +506,13 @@ export function ChatInterface() {
                   })}
                 </div>
                 <div className={`text-center text-sm font-bold bg-gradient-to-r ${STAGE_COLORS[analysisResult.stage] || "from-indigo-400 to-purple-500"} bg-clip-text text-transparent`}>
-                  ステージ {analysisResult.stage}【{analysisResult.stage_name}】（全6段階中）
+                  {UI.stageLabel[language]} {analysisResult.stage}【{analysisResult.stage_name}】{UI.stageOf6[language]}
                 </div>
               </div>
 
               {/* Step position indicator */}
               <div className="bg-white/70 backdrop-blur rounded-2xl p-5 border border-white/80 shadow-sm">
-                <div className="text-xs font-bold text-slate-400 mb-2">日本語の習得ステップ — 全体の中の位置（{gradeLevel}）</div>
+                <div className="text-xs font-bold text-slate-400 mb-2">{UI.stepPosition[language]}（{gradeLevel}）</div>
                 <div className="flex gap-1.5 mb-3">
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => {
                     const isActive = n === analysisResult.step;
@@ -486,52 +533,52 @@ export function ChatInterface() {
                   })}
                 </div>
                 <div className="text-center text-sm font-bold bg-gradient-to-r from-pink-400 to-amber-400 bg-clip-text text-transparent">
-                  ステップ {analysisResult.step}（全8段階中）
+                  {UI.stepLabel[language]} {analysisResult.step} {UI.stepOf8[language]}
                 </div>
               </div>
 
               {/* Reasoning */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/60 rounded-xl p-4 border-l-4 border-indigo-400">
-                  <h4 className="font-bold text-indigo-600 text-sm mb-1">ステージ判定の根拠</h4>
+                  <h4 className="font-bold text-indigo-600 text-sm mb-1">{UI.stageReason[language]}</h4>
                   <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.stage_reasoning}</p>
                 </div>
                 <div className="bg-white/60 rounded-xl p-4 border-l-4 border-pink-400">
-                  <h4 className="font-bold text-pink-600 text-sm mb-1">ステップ判定の根拠</h4>
+                  <h4 className="font-bold text-pink-600 text-sm mb-1">{UI.stepReason[language]}</h4>
                   <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.step_reasoning}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-white/60 rounded-xl p-4 border-l-4 border-green-400">
-                  <h4 className="font-bold text-green-600 text-sm mb-1">💪 つよみ</h4>
+                  <h4 className="font-bold text-green-600 text-sm mb-1">{UI.strengths[language]}</h4>
                   <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.strengths}</p>
                 </div>
                 <div className="bg-white/60 rounded-xl p-4 border-l-4 border-amber-400">
-                  <h4 className="font-bold text-amber-600 text-sm mb-1">🎯 つぎのもくひょう</h4>
+                  <h4 className="font-bold text-amber-600 text-sm mb-1">{UI.goals[language]}</h4>
                   <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.next_goals}</p>
                 </div>
                 <div className="bg-white/60 rounded-xl p-4 border-l-4 border-purple-400">
-                  <h4 className="font-bold text-purple-600 text-sm mb-1">📖 せんせいへ</h4>
+                  <h4 className="font-bold text-purple-600 text-sm mb-1">{UI.support[language]}</h4>
                   <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.support_suggestions}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/50 rounded-xl p-3 border border-white/60">
-                  <h4 className="font-bold text-blue-500 text-xs mb-1">💡 コミュニケーション方略</h4>
+                  <h4 className="font-bold text-blue-500 text-xs mb-1">{UI.commStrategy[language]}</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">{analysisResult.communication_strategies}</p>
                 </div>
                 <div className="bg-white/50 rounded-xl p-3 border border-white/60">
-                  <h4 className="font-bold text-violet-500 text-xs mb-1">🌐 コードスイッチング</h4>
+                  <h4 className="font-bold text-violet-500 text-xs mb-1">{UI.codeSwitch[language]}</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">{analysisResult.code_switching}</p>
                 </div>
                 <div className="bg-white/50 rounded-xl p-3 border border-white/60">
-                  <h4 className="font-bold text-emerald-500 text-xs mb-1">🤝 相互行為能力</h4>
+                  <h4 className="font-bold text-emerald-500 text-xs mb-1">{UI.interactive[language]}</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">{analysisResult.interactive_competence}</p>
                 </div>
                 <div className="bg-white/50 rounded-xl p-3 border border-white/60">
-                  <h4 className="font-bold text-rose-500 text-xs mb-1">✨ 言語的創造性</h4>
+                  <h4 className="font-bold text-rose-500 text-xs mb-1">{UI.creativity[language]}</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">{analysisResult.linguistic_creativity}</p>
                 </div>
               </div>
@@ -539,11 +586,11 @@ export function ChatInterface() {
           )}
 
           <details className="bg-white/50 rounded-xl p-4 border border-white/60">
-            <summary className="font-bold text-slate-500 text-sm cursor-pointer">💬 おはなしのきろく</summary>
+            <summary className="font-bold text-slate-500 text-sm cursor-pointer">{UI.chatLog[language]}</summary>
             <div className="mt-3 space-y-2 max-h-60 overflow-y-auto">
               {messages.map((m, i) => (
                 <div key={i} className={`text-sm ${m.role === "user" ? "text-slate-700" : "text-orange-600"}`}>
-                  <span className="font-bold">{m.role === "user" ? "あなた: " : "レッサーくん: "}</span>
+                  <span className="font-bold">{m.role === "user" ? "{UI.you[language]}: " : "Lesser-kun: "}</span>
                   {m.content}
                 </div>
               ))}
@@ -562,7 +609,7 @@ export function ChatInterface() {
               }}
               className="px-6 py-3 bg-gradient-to-r from-orange-400 to-pink-400 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
             >
-              もういちど おはなしする
+              {UI.restart[language]}
             </button>
           </div>
         </div>
@@ -576,10 +623,10 @@ export function ChatInterface() {
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="text-center max-w-lg">
           <Image src="/red-panda.webp" alt="レッサーくん" width={120} height={120} className="mx-auto rounded-full" />
-          <h1 className="text-4xl font-black mt-4 mb-2 bg-gradient-to-r from-orange-500 via-pink-500 to-amber-500 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-black mt-4 mb-2 bg-gradient-to-r from-orange-500 via-pink-500 to-amber-500 bg-clip-text text-transparent pb-1 leading-tight" style={{ WebkitTextFillColor: "transparent" }}>
             Caring AI
           </h1>
-          <p className="text-lg text-slate-500 mb-1">ことばの対話パートナー</p>
+          <p className="text-lg text-slate-500 mb-1">{UI.subtitle[language]}</p>
           <p className="text-slate-400 mb-6 text-sm">
             {language === "ja"
               ? "レッサーパンダのレッサーくんとおはなしして、ことばのちからをのばそう！"
@@ -598,7 +645,7 @@ export function ChatInterface() {
                   : "bg-white/60 text-slate-500 border border-slate-200"
               }`}
             >
-              🇯🇵 日本語
+              日本語
             </button>
             <button
               onClick={() => setLanguage("en")}
@@ -608,7 +655,7 @@ export function ChatInterface() {
                   : "bg-white/60 text-slate-500 border border-slate-200"
               }`}
             >
-              🇺🇸 English
+              English
             </button>
             <button
               onClick={() => setLanguage("pt")}
@@ -618,7 +665,7 @@ export function ChatInterface() {
                   : "bg-white/60 text-slate-500 border border-slate-200"
               }`}
             >
-              🇧🇷 Português
+              Português
             </button>
           </div>
 
@@ -663,14 +710,14 @@ export function ChatInterface() {
         <div className="flex items-center gap-2">
           <Image src="/red-panda.webp" alt="レッサーくん" width={36} height={36} className={"rounded-full " + (isSpeaking ? "animate-bounce" : "")} />
           <span className="text-lg font-black bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-            レッサーくん
+            Lesser-kun
           </span>
         </div>
         <button
           onClick={endConversation}
           className="px-5 py-2.5 bg-gradient-to-r from-rose-400 to-pink-500 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all"
         >
-          🏁 おはなし おわり
+          {UI.endBtn[language]}
         </button>
       </div>
 
@@ -691,7 +738,7 @@ export function ChatInterface() {
               }`}
             >
               {m.role === "assistant" && (
-                <div className="text-xs text-orange-400 font-bold mb-1">レッサーくん</div>
+                <div className="text-xs text-orange-400 font-bold mb-1">Lesser-kun</div>
               )}
               <p className="text-sm leading-relaxed">{m.content}</p>
             </div>
@@ -703,7 +750,7 @@ export function ChatInterface() {
           <div className="flex justify-start">
             <div className="flex-shrink-0 mr-2 mt-1"><Image src="/red-panda.webp" alt="レッサーくん" width={32} height={32} className="rounded-full animate-bounce" /></div>
             <div className="max-w-[75%] rounded-2xl px-4 py-3 bg-amber-50 text-amber-700 border border-amber-200 shadow-sm">
-              <div className="text-xs text-amber-500 font-bold mb-1">レッサーくん</div>
+              <div className="text-xs text-amber-500 font-bold mb-1">Lesser-kun</div>
               <p className="text-sm leading-relaxed">{silenceWarning}</p>
             </div>
           </div>
@@ -741,7 +788,7 @@ export function ChatInterface() {
             onClick={enableMic}
             className="px-6 py-3 bg-gradient-to-r from-green-400 to-emerald-500 text-white text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
           >
-            🎤 マイクをオンにする
+            {UI.enableMic[language]}
           </button>
         )}
 
@@ -773,15 +820,15 @@ export function ChatInterface() {
             : "bg-slate-100 text-slate-500"
         }`}>
           {isSpeaking ? (
-            <><span className="animate-pulse">🐾</span> レッサーくんがおはなし中...</>
+            <><span className="animate-pulse">🐾</span> {UI.speaking[language]}</>
           ) : isAutoListening ? (
-            <><span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" /> きいているよ。おわったら ✉️ をおしてね</>
+            <><span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" /> {UI.sendHint[language]}</>
           ) : isLoading ? (
-            <><span className="animate-pulse">🐾</span> レッサーくんがかんがえ中...</>
+            <><span className="animate-pulse">🐾</span> {UI.thinking[language]}</>
           ) : !micEnabled ? (
-            <>上のボタンをおして、はじめてね</>
+            <>{UI.waitMic[language]}</>
           ) : (
-            <>じゅんびちゅう...</>
+            <>{UI.preparing[language]}</>
           )}
         </div>
       </div>
