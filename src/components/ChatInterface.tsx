@@ -142,6 +142,7 @@ export function ChatInterface() {
   const [silenceWarning, setSilenceWarning] = useState("");
   const [micEnabled, setMicEnabled] = useState(false);
   const [language, setLanguage] = useState<"ja" | "en" | "pt">("ja");
+  const [uiLang, setUiLang] = useState<Lang>("ja");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
@@ -457,16 +458,16 @@ export function ChatInterface() {
           <div className="text-center">
             <Image src="/red-panda.webp" alt="レッサーくん" width={80} height={80} className="mx-auto rounded-full" />
             <h2 className="text-2xl font-black mt-2 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-              {UI.finishedTitle[language]}
+              {UI.finishedTitle[uiLang]}
             </h2>
-            <p className="text-slate-500 mt-1">{UI.finishedSub[language]}</p>
+            <p className="text-slate-500 mt-1">{UI.finishedSub[uiLang]}</p>
           </div>
 
           {analysisResult?.encouragement && (
             <div className="flex items-start gap-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-4 border border-orange-200">
               <Image src="/red-panda.webp" alt="レッサーくん" width={48} height={48} className="rounded-full" />
               <div>
-                <div className="text-xs font-bold text-orange-500 mb-1">{UI.fromLesser[language]}</div>
+                <div className="text-xs font-bold text-orange-500 mb-1">{UI.fromLesser[uiLang]}</div>
                 <p className="text-slate-700 leading-relaxed">{analysisResult.encouragement}</p>
               </div>
             </div>
@@ -475,7 +476,7 @@ export function ChatInterface() {
           {isAnalyzing && (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-200 border-t-orange-500 mb-3" />
-              <p className="text-slate-500">{UI.analyzing[language]}</p>
+              <p className="text-slate-500">{UI.analyzing[uiLang]}</p>
             </div>
           )}
 
@@ -483,7 +484,7 @@ export function ChatInterface() {
             <>
               {/* Stage position indicator */}
               <div className="bg-white/70 backdrop-blur rounded-2xl p-5 border border-white/80 shadow-sm">
-                <div className="text-xs font-bold text-slate-400 mb-2">{UI.stagePosition[language]}</div>
+                <div className="text-xs font-bold text-slate-400 mb-2">{UI.stagePosition[uiLang]}</div>
                 <div className="flex gap-1.5 mb-3">
                   {(["A", "B", "C", "D", "E", "F"] as const).map((s) => {
                     const isActive = s === analysisResult.stage;
@@ -506,13 +507,13 @@ export function ChatInterface() {
                   })}
                 </div>
                 <div className={`text-center text-sm font-bold bg-gradient-to-r ${STAGE_COLORS[analysisResult.stage] || "from-indigo-400 to-purple-500"} bg-clip-text text-transparent`}>
-                  {UI.stageLabel[language]} {analysisResult.stage}【{analysisResult.stage_name}】{UI.stageOf6[language]}
+                  {UI.stageLabel[uiLang]} {analysisResult.stage}【{analysisResult.stage_name}】{UI.stageOf6[language]}
                 </div>
               </div>
 
               {/* Step position indicator */}
               <div className="bg-white/70 backdrop-blur rounded-2xl p-5 border border-white/80 shadow-sm">
-                <div className="text-xs font-bold text-slate-400 mb-2">{UI.stepPosition[language]}（{gradeLevel}）</div>
+                <div className="text-xs font-bold text-slate-400 mb-2">{UI.stepPosition[uiLang]}（{gradeLevel}）</div>
                 <div className="flex gap-1.5 mb-3">
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => {
                     const isActive = n === analysisResult.step;
@@ -533,52 +534,52 @@ export function ChatInterface() {
                   })}
                 </div>
                 <div className="text-center text-sm font-bold bg-gradient-to-r from-pink-400 to-amber-400 bg-clip-text text-transparent">
-                  {UI.stepLabel[language]} {analysisResult.step} {UI.stepOf8[language]}
+                  {UI.stepLabel[uiLang]} {analysisResult.step} {UI.stepOf8[language]}
                 </div>
               </div>
 
               {/* Reasoning */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/60 rounded-xl p-4 border-l-4 border-indigo-400">
-                  <h4 className="font-bold text-indigo-600 text-sm mb-1">{UI.stageReason[language]}</h4>
+                  <h4 className="font-bold text-indigo-600 text-sm mb-1">{UI.stageReason[uiLang]}</h4>
                   <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.stage_reasoning}</p>
                 </div>
                 <div className="bg-white/60 rounded-xl p-4 border-l-4 border-pink-400">
-                  <h4 className="font-bold text-pink-600 text-sm mb-1">{UI.stepReason[language]}</h4>
+                  <h4 className="font-bold text-pink-600 text-sm mb-1">{UI.stepReason[uiLang]}</h4>
                   <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.step_reasoning}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-white/60 rounded-xl p-4 border-l-4 border-green-400">
-                  <h4 className="font-bold text-green-600 text-sm mb-1">{UI.strengths[language]}</h4>
+                  <h4 className="font-bold text-green-600 text-sm mb-1">{UI.strengths[uiLang]}</h4>
                   <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.strengths}</p>
                 </div>
                 <div className="bg-white/60 rounded-xl p-4 border-l-4 border-amber-400">
-                  <h4 className="font-bold text-amber-600 text-sm mb-1">{UI.goals[language]}</h4>
+                  <h4 className="font-bold text-amber-600 text-sm mb-1">{UI.goals[uiLang]}</h4>
                   <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.next_goals}</p>
                 </div>
                 <div className="bg-white/60 rounded-xl p-4 border-l-4 border-purple-400">
-                  <h4 className="font-bold text-purple-600 text-sm mb-1">{UI.support[language]}</h4>
+                  <h4 className="font-bold text-purple-600 text-sm mb-1">{UI.support[uiLang]}</h4>
                   <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.support_suggestions}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/50 rounded-xl p-3 border border-white/60">
-                  <h4 className="font-bold text-blue-500 text-xs mb-1">{UI.commStrategy[language]}</h4>
+                  <h4 className="font-bold text-blue-500 text-xs mb-1">{UI.commStrategy[uiLang]}</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">{analysisResult.communication_strategies}</p>
                 </div>
                 <div className="bg-white/50 rounded-xl p-3 border border-white/60">
-                  <h4 className="font-bold text-violet-500 text-xs mb-1">{UI.codeSwitch[language]}</h4>
+                  <h4 className="font-bold text-violet-500 text-xs mb-1">{UI.codeSwitch[uiLang]}</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">{analysisResult.code_switching}</p>
                 </div>
                 <div className="bg-white/50 rounded-xl p-3 border border-white/60">
-                  <h4 className="font-bold text-emerald-500 text-xs mb-1">{UI.interactive[language]}</h4>
+                  <h4 className="font-bold text-emerald-500 text-xs mb-1">{UI.interactive[uiLang]}</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">{analysisResult.interactive_competence}</p>
                 </div>
                 <div className="bg-white/50 rounded-xl p-3 border border-white/60">
-                  <h4 className="font-bold text-rose-500 text-xs mb-1">{UI.creativity[language]}</h4>
+                  <h4 className="font-bold text-rose-500 text-xs mb-1">{UI.creativity[uiLang]}</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">{analysisResult.linguistic_creativity}</p>
                 </div>
               </div>
@@ -586,11 +587,11 @@ export function ChatInterface() {
           )}
 
           <details className="bg-white/50 rounded-xl p-4 border border-white/60">
-            <summary className="font-bold text-slate-500 text-sm cursor-pointer">{UI.chatLog[language]}</summary>
+            <summary className="font-bold text-slate-500 text-sm cursor-pointer">{UI.chatLog[uiLang]}</summary>
             <div className="mt-3 space-y-2 max-h-60 overflow-y-auto">
               {messages.map((m, i) => (
                 <div key={i} className={`text-sm ${m.role === "user" ? "text-slate-700" : "text-orange-600"}`}>
-                  <span className="font-bold">{m.role === "user" ? "{UI.you[language]}: " : "Lesser-kun: "}</span>
+                  <span className="font-bold">{m.role === "user" ? "{UI.you[uiLang]}: " : "Lesser-kun: "}</span>
                   {m.content}
                 </div>
               ))}
@@ -609,7 +610,7 @@ export function ChatInterface() {
               }}
               className="px-6 py-3 bg-gradient-to-r from-orange-400 to-pink-400 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
             >
-              {UI.restart[language]}
+              {UI.restart[uiLang]}
             </button>
           </div>
         </div>
@@ -626,52 +627,65 @@ export function ChatInterface() {
           <h1 className="text-4xl font-black mt-4 mb-2 bg-gradient-to-r from-orange-500 via-pink-500 to-amber-500 bg-clip-text text-transparent pb-1 leading-tight" style={{ WebkitTextFillColor: "transparent" }}>
             Caring AI
           </h1>
-          <p className="text-lg text-slate-500 mb-1">{UI.subtitle[language]}</p>
+          <p className="text-lg text-slate-500 mb-1">{UI.subtitle[uiLang]}</p>
           <p className="text-slate-400 mb-6 text-sm">
-            {language === "ja"
-              ? "レッサーパンダのレッサーくんとおはなしして、ことばのちからをのばそう！"
-              : language === "pt"
-              ? "Converse com o Lesser-kun, o panda vermelho, e melhore suas habilidades linguísticas!"
-              : "Talk with Lesser-kun the red panda and grow your language skills!"}
+            {UI.description[uiLang]}
           </p>
 
-          {/* Language selector */}
-          <div className="mb-4 flex justify-center gap-2">
-            <button
-              onClick={() => setLanguage("ja")}
-              className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
-                language === "ja"
-                  ? "bg-gradient-to-r from-orange-400 to-pink-400 text-white shadow-md"
-                  : "bg-white/60 text-slate-500 border border-slate-200"
-              }`}
-            >
-              日本語
-            </button>
-            <button
-              onClick={() => setLanguage("en")}
-              className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
-                language === "en"
-                  ? "bg-gradient-to-r from-blue-400 to-indigo-400 text-white shadow-md"
-                  : "bg-white/60 text-slate-500 border border-slate-200"
-              }`}
-            >
-              English
-            </button>
-            <button
-              onClick={() => setLanguage("pt")}
-              className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
-                language === "pt"
-                  ? "bg-gradient-to-r from-green-500 to-yellow-400 text-white shadow-md"
-                  : "bg-white/60 text-slate-500 border border-slate-200"
-              }`}
-            >
-              Português
-            </button>
+          {/* UI Language selector */}
+          <div className="mb-2">
+            <label className="text-xs text-slate-400 font-bold block mb-1">
+              {uiLang === "ja" ? "表示言語" : uiLang === "pt" ? "Idioma da tela" : "Display Language"}
+            </label>
+            <div className="flex justify-center gap-2">
+              {(["ja", "en", "pt"] as const).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setUiLang(l)}
+                  className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all ${
+                    uiLang === l
+                      ? "bg-slate-700 text-white shadow-sm"
+                      : "bg-white/60 text-slate-400 border border-slate-200"
+                  }`}
+                >
+                  {l === "ja" ? "日本語" : l === "en" ? "English" : "Português"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Conversation language selector */}
+          <div className="mb-4">
+            <label className="text-xs text-slate-400 font-bold block mb-1">
+              {uiLang === "ja" ? "おはなしの言語" : uiLang === "pt" ? "Idioma da conversa" : "Conversation Language"}
+            </label>
+            <div className="flex justify-center gap-2">
+              {(["ja", "en", "pt"] as const).map((l) => {
+                const colors: Record<string, string> = {
+                  ja: "from-orange-400 to-pink-400",
+                  en: "from-blue-400 to-indigo-400",
+                  pt: "from-green-500 to-yellow-400",
+                };
+                return (
+                  <button
+                    key={l}
+                    onClick={() => setLanguage(l)}
+                    className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
+                      language === l
+                        ? `bg-gradient-to-r ${colors[l]} text-white shadow-md`
+                        : "bg-white/60 text-slate-500 border border-slate-200"
+                    }`}
+                  >
+                    {l === "ja" ? "日本語" : l === "en" ? "English" : "Português"}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="mb-6">
             <label className="text-sm text-slate-500 font-bold block mb-1">
-              {language === "ja" ? "学年段階" : language === "pt" ? "Nível escolar" : "Grade Level"}
+              {UI.gradeLabel[uiLang]}
             </label>
             <select
               value={gradeLevel}
@@ -689,13 +703,11 @@ export function ChatInterface() {
             onClick={startConversation}
             className="px-8 py-4 bg-gradient-to-r from-orange-400 to-pink-500 text-white text-xl font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
           >
-            {language === "ja" ? "おはなしを はじめる" : language === "pt" ? "Começar a conversar" : "Start Talking"}
+            {UI.startBtn[uiLang]}
           </button>
 
-          <p className="mt-6 text-xs text-slate-400">
-            マイクを使います。ブラウザの許可が必要です。
-            <br />
-            Google Chrome での利用を推奨します。
+          <p className="mt-6 text-xs text-slate-400 whitespace-pre-line">
+            {UI.micNote[uiLang]}
           </p>
         </div>
       </div>
@@ -717,7 +729,7 @@ export function ChatInterface() {
           onClick={endConversation}
           className="px-5 py-2.5 bg-gradient-to-r from-rose-400 to-pink-500 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all"
         >
-          {UI.endBtn[language]}
+          {UI.endBtn[uiLang]}
         </button>
       </div>
 
@@ -788,7 +800,7 @@ export function ChatInterface() {
             onClick={enableMic}
             className="px-6 py-3 bg-gradient-to-r from-green-400 to-emerald-500 text-white text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
           >
-            {UI.enableMic[language]}
+            {UI.enableMic[uiLang]}
           </button>
         )}
 
@@ -820,15 +832,15 @@ export function ChatInterface() {
             : "bg-slate-100 text-slate-500"
         }`}>
           {isSpeaking ? (
-            <><span className="animate-pulse">🐾</span> {UI.speaking[language]}</>
+            <><span className="animate-pulse">🐾</span> {UI.speaking[uiLang]}</>
           ) : isAutoListening ? (
-            <><span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" /> {UI.sendHint[language]}</>
+            <><span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" /> {UI.sendHint[uiLang]}</>
           ) : isLoading ? (
-            <><span className="animate-pulse">🐾</span> {UI.thinking[language]}</>
+            <><span className="animate-pulse">🐾</span> {UI.thinking[uiLang]}</>
           ) : !micEnabled ? (
-            <>{UI.waitMic[language]}</>
+            <>{UI.waitMic[uiLang]}</>
           ) : (
-            <>{UI.preparing[language]}</>
+            <>{UI.preparing[uiLang]}</>
           )}
         </div>
       </div>
