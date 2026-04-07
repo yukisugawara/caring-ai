@@ -455,77 +455,87 @@ export function ChatInterface() {
     return (
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-3xl mx-auto space-y-6">
-          <div className="text-center">
-            <Image src="/red-panda.webp" alt="レッサーくん" width={80} height={80} className="mx-auto rounded-full" />
-            <h2 className="text-2xl font-black mt-2 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+          {/* Celebration header */}
+          <div className="text-center animate-pop-in">
+            <div className="animate-float inline-block">
+              <Image src="/red-panda.webp" alt="Lesser-kun" width={100} height={100} className="mx-auto rounded-full shadow-lg ring-4 ring-orange-200" />
+            </div>
+            <h2 className="text-3xl font-black mt-3 bg-gradient-to-r from-orange-400 via-pink-400 to-violet-400 bg-clip-text text-transparent pb-1" style={{ WebkitTextFillColor: "transparent" }}>
               {UI.finishedTitle[uiLang]}
             </h2>
-            <p className="text-slate-500 mt-1">{UI.finishedSub[uiLang]}</p>
+            <p className="text-slate-400 mt-1 text-lg">{UI.finishedSub[uiLang]}</p>
           </div>
 
+          {/* Encouragement from Lesser-kun */}
           {analysisResult?.encouragement && (
-            <div className="flex items-start gap-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-4 border border-orange-200">
-              <Image src="/red-panda.webp" alt="レッサーくん" width={48} height={48} className="rounded-full" />
+            <div className="bubble-card flex items-start gap-4 animate-slide-up" style={{ background: "linear-gradient(135deg, rgba(255,237,213,0.7), rgba(255,228,230,0.7))" }}>
+              <div className="animate-wiggle flex-shrink-0">
+                <Image src="/red-panda.webp" alt="Lesser-kun" width={56} height={56} className="rounded-full shadow-md ring-2 ring-orange-200" />
+              </div>
               <div>
-                <div className="text-xs font-bold text-orange-500 mb-1">{UI.fromLesser[uiLang]}</div>
-                <p className="text-slate-700 leading-relaxed">{analysisResult.encouragement}</p>
+                <div className="text-xs font-black text-orange-400 mb-1 tracking-wide">{UI.fromLesser[uiLang]}</div>
+                <p className="text-slate-600 leading-relaxed text-base">{analysisResult.encouragement}</p>
               </div>
             </div>
           )}
 
+          {/* Analyzing spinner */}
           {isAnalyzing && (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-200 border-t-orange-500 mb-3" />
-              <p className="text-slate-500">{UI.analyzing[uiLang]}</p>
+            <div className="text-center py-12">
+              <div className="animate-float inline-block mb-4">
+                <Image src="/red-panda.webp" alt="Lesser-kun" width={64} height={64} className="rounded-full" />
+              </div>
+              <div className="flex justify-center gap-2 mb-3">
+                <div className="w-3 h-3 bg-orange-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-3 h-3 bg-pink-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-3 h-3 bg-violet-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+              <p className="text-slate-400 font-bold">{UI.analyzing[uiLang]}</p>
             </div>
           )}
 
           {analysisResult && (
             <>
               {/* Stage position indicator */}
-              <div className="bg-white/70 backdrop-blur rounded-2xl p-5 border border-white/80 shadow-sm">
-                <div className="text-xs font-bold text-slate-400 mb-2">{UI.stagePosition[uiLang]}</div>
-                <div className="flex gap-1.5 mb-3">
+              <div className="bubble-card animate-slide-up">
+                <div className="text-xs font-black text-violet-400 mb-3 tracking-wide">{UI.stagePosition[uiLang]}</div>
+                <div className="flex gap-2 mb-3">
                   {(["A", "B", "C", "D", "E", "F"] as const).map((s) => {
                     const isActive = s === analysisResult.stage;
-                    const names: Record<string, string> = { A: "イマココ期", B: "イマココ\nから順序期", C: "順序期", D: "因果期", E: "抽象期", F: "評価・\n発展期" };
                     return (
                       <div
                         key={s}
-                        className={`flex-1 text-center py-2 px-1 rounded-xl text-xs font-bold transition-all ${
+                        className={`flex-1 text-center py-3 px-1 rounded-2xl font-black transition-all ${
                           isActive
-                            ? `bg-gradient-to-r ${STAGE_COLORS[s]} text-white shadow-lg scale-105`
-                            : "bg-slate-100 text-slate-400"
+                            ? `bg-gradient-to-b ${STAGE_COLORS[s]} text-white shadow-lg scale-110 ring-2 ring-white`
+                            : "bg-white/50 text-slate-300"
                         }`}
                       >
-                        <div className="text-lg">{s}</div>
-                        <div className="whitespace-pre-line leading-tight mt-0.5" style={{ fontSize: "0.6rem" }}>
-                          {names[s]}
-                        </div>
+                        <div className="text-xl">{s}</div>
                       </div>
                     );
                   })}
                 </div>
-                <div className={`text-center text-sm font-bold bg-gradient-to-r ${STAGE_COLORS[analysisResult.stage] || "from-indigo-400 to-purple-500"} bg-clip-text text-transparent`}>
-                  {UI.stageLabel[uiLang]} {analysisResult.stage}【{analysisResult.stage_name}】{UI.stageOf6[language]}
+                <div className={`text-center text-base font-black bg-gradient-to-r ${STAGE_COLORS[analysisResult.stage] || "from-indigo-400 to-purple-500"} bg-clip-text text-transparent pb-0.5`} style={{ WebkitTextFillColor: "transparent" }}>
+                  {UI.stageLabel[uiLang]} {analysisResult.stage} — {analysisResult.stage_name} {UI.stageOf6[uiLang]}
                 </div>
               </div>
 
               {/* Step position indicator */}
-              <div className="bg-white/70 backdrop-blur rounded-2xl p-5 border border-white/80 shadow-sm">
-                <div className="text-xs font-bold text-slate-400 mb-2">{UI.stepPosition[uiLang]}（{gradeLevel}）</div>
-                <div className="flex gap-1.5 mb-3">
+              <div className="bubble-card animate-slide-up" style={{ animationDelay: "0.1s" }}>
+                <div className="text-xs font-black text-pink-400 mb-3 tracking-wide">{UI.stepPosition[uiLang]}（{gradeLevel}）</div>
+                <div className="flex gap-2 mb-3">
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => {
                     const isActive = n === analysisResult.step;
                     return (
                       <div
                         key={n}
-                        className={`flex-1 text-center py-2.5 rounded-xl text-sm font-bold transition-all ${
+                        className={`flex-1 text-center py-3 rounded-2xl font-black transition-all ${
                           isActive
-                            ? "bg-gradient-to-r from-pink-400 to-amber-400 text-white shadow-lg scale-105"
+                            ? "bg-gradient-to-b from-pink-400 to-orange-400 text-white shadow-lg scale-110 ring-2 ring-white"
                             : n <= analysisResult.step
-                            ? "bg-pink-100 text-pink-400"
-                            : "bg-slate-100 text-slate-400"
+                            ? "bg-pink-100 text-pink-300"
+                            : "bg-white/50 text-slate-300"
                         }`}
                       >
                         {n}
@@ -533,71 +543,68 @@ export function ChatInterface() {
                     );
                   })}
                 </div>
-                <div className="text-center text-sm font-bold bg-gradient-to-r from-pink-400 to-amber-400 bg-clip-text text-transparent">
-                  {UI.stepLabel[uiLang]} {analysisResult.step} {UI.stepOf8[language]}
+                <div className="text-center text-base font-black bg-gradient-to-r from-pink-400 to-orange-400 bg-clip-text text-transparent pb-0.5" style={{ WebkitTextFillColor: "transparent" }}>
+                  {UI.stepLabel[uiLang]} {analysisResult.step} {UI.stepOf8[uiLang]}
                 </div>
               </div>
 
               {/* Reasoning */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/60 rounded-xl p-4 border-l-4 border-indigo-400">
-                  <h4 className="font-bold text-indigo-600 text-sm mb-1">{UI.stageReason[uiLang]}</h4>
-                  <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.stage_reasoning}</p>
+                <div className="bubble-card animate-slide-up border-l-4 border-violet-300" style={{ animationDelay: "0.15s" }}>
+                  <h4 className="font-black text-violet-500 text-sm mb-2">{UI.stageReason[uiLang]}</h4>
+                  <p className="text-sm text-slate-500 leading-relaxed">{analysisResult.stage_reasoning}</p>
                 </div>
-                <div className="bg-white/60 rounded-xl p-4 border-l-4 border-pink-400">
-                  <h4 className="font-bold text-pink-600 text-sm mb-1">{UI.stepReason[uiLang]}</h4>
-                  <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.step_reasoning}</p>
+                <div className="bubble-card animate-slide-up border-l-4 border-pink-300" style={{ animationDelay: "0.2s" }}>
+                  <h4 className="font-black text-pink-500 text-sm mb-2">{UI.stepReason[uiLang]}</h4>
+                  <p className="text-sm text-slate-500 leading-relaxed">{analysisResult.step_reasoning}</p>
                 </div>
               </div>
 
+              {/* Strengths / Goals / Support */}
               <div className="grid grid-cols-3 gap-4">
-                <div className="bg-white/60 rounded-xl p-4 border-l-4 border-green-400">
-                  <h4 className="font-bold text-green-600 text-sm mb-1">{UI.strengths[uiLang]}</h4>
-                  <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.strengths}</p>
-                </div>
-                <div className="bg-white/60 rounded-xl p-4 border-l-4 border-amber-400">
-                  <h4 className="font-bold text-amber-600 text-sm mb-1">{UI.goals[uiLang]}</h4>
-                  <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.next_goals}</p>
-                </div>
-                <div className="bg-white/60 rounded-xl p-4 border-l-4 border-purple-400">
-                  <h4 className="font-bold text-purple-600 text-sm mb-1">{UI.support[uiLang]}</h4>
-                  <p className="text-sm text-slate-600 leading-relaxed">{analysisResult.support_suggestions}</p>
-                </div>
+                {[
+                  { key: "strengths" as const, color: "emerald", icon: "💪", value: analysisResult.strengths },
+                  { key: "goals" as const, color: "amber", icon: "🎯", value: analysisResult.next_goals },
+                  { key: "support" as const, color: "violet", icon: "📖", value: analysisResult.support_suggestions },
+                ].map((item, idx) => (
+                  <div key={item.key} className={`bubble-card animate-slide-up border-t-4 border-${item.color}-300`} style={{ animationDelay: `${0.25 + idx * 0.05}s` }}>
+                    <h4 className={`font-black text-${item.color}-500 text-sm mb-2`}>{UI[item.key][uiLang]}</h4>
+                    <p className="text-sm text-slate-500 leading-relaxed">{item.value}</p>
+                  </div>
+                ))}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/50 rounded-xl p-3 border border-white/60">
-                  <h4 className="font-bold text-blue-500 text-xs mb-1">{UI.commStrategy[uiLang]}</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">{analysisResult.communication_strategies}</p>
-                </div>
-                <div className="bg-white/50 rounded-xl p-3 border border-white/60">
-                  <h4 className="font-bold text-violet-500 text-xs mb-1">{UI.codeSwitch[uiLang]}</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">{analysisResult.code_switching}</p>
-                </div>
-                <div className="bg-white/50 rounded-xl p-3 border border-white/60">
-                  <h4 className="font-bold text-emerald-500 text-xs mb-1">{UI.interactive[uiLang]}</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">{analysisResult.interactive_competence}</p>
-                </div>
-                <div className="bg-white/50 rounded-xl p-3 border border-white/60">
-                  <h4 className="font-bold text-rose-500 text-xs mb-1">{UI.creativity[uiLang]}</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">{analysisResult.linguistic_creativity}</p>
-                </div>
+              {/* Extended analysis */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { key: "commStrategy" as const, color: "blue", value: analysisResult.communication_strategies },
+                  { key: "codeSwitch" as const, color: "violet", value: analysisResult.code_switching },
+                  { key: "interactive" as const, color: "emerald", value: analysisResult.interactive_competence },
+                  { key: "creativity" as const, color: "rose", value: analysisResult.linguistic_creativity },
+                ].map((item) => (
+                  <div key={item.key} className="bubble-card animate-slide-up" style={{ padding: "1rem" }}>
+                    <h4 className={`font-black text-${item.color}-400 text-xs mb-1`}>{UI[item.key][uiLang]}</h4>
+                    <p className="text-xs text-slate-500 leading-relaxed">{item.value}</p>
+                  </div>
+                ))}
               </div>
             </>
           )}
 
-          <details className="bg-white/50 rounded-xl p-4 border border-white/60">
-            <summary className="font-bold text-slate-500 text-sm cursor-pointer">{UI.chatLog[uiLang]}</summary>
+          {/* Chat log */}
+          <details className="bubble-card">
+            <summary className="font-black text-slate-400 text-sm cursor-pointer">{UI.chatLog[uiLang]}</summary>
             <div className="mt-3 space-y-2 max-h-60 overflow-y-auto">
               {messages.map((m, i) => (
-                <div key={i} className={`text-sm ${m.role === "user" ? "text-slate-700" : "text-orange-600"}`}>
-                  <span className="font-bold">{m.role === "user" ? "{UI.you[uiLang]}: " : "Lesser-kun: "}</span>
+                <div key={i} className={`text-sm rounded-xl px-3 py-2 ${m.role === "user" ? "bg-violet-50 text-violet-700" : "bg-orange-50 text-orange-600"}`}>
+                  <span className="font-black">{m.role === "user" ? `${UI.you[uiLang]}: ` : "Lesser-kun: "}</span>
                   {m.content}
                 </div>
               ))}
             </div>
           </details>
 
+          {/* Restart */}
           <div className="text-center pb-8">
             <button
               onClick={() => {
@@ -608,7 +615,7 @@ export function ChatInterface() {
                 setAnalysisResult(null);
                 setMicEnabled(false);
               }}
-              className="px-6 py-3 bg-gradient-to-r from-orange-400 to-pink-400 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+              className="btn-fun px-8 py-4 bg-gradient-to-r from-orange-400 via-pink-400 to-violet-400 text-white text-lg"
             >
               {UI.restart[uiLang]}
             </button>
@@ -620,93 +627,105 @@ export function ChatInterface() {
 
   // ===== Start screen =====
   if (!isStarted) {
+    const GRADE_LABELS: Record<string, Record<Lang, string>> = {
+      "小1〜小2段階": { ja: "小1〜小2段階", en: "Grade 1-2", pt: "1º-2º ano" },
+      "小3〜小4段階": { ja: "小3〜小4段階", en: "Grade 3-4", pt: "3º-4º ano" },
+      "小5〜中2段階": { ja: "小5〜中2段階", en: "Grade 5-8", pt: "5º-8º ano" },
+      "中3〜高校段階": { ja: "中3〜高校段階", en: "Grade 9-12", pt: "9º ano-Ensino Médio" },
+    };
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="text-center max-w-lg">
-          <Image src="/red-panda.webp" alt="レッサーくん" width={120} height={120} className="mx-auto rounded-full" />
-          <h1 className="text-4xl font-black mt-4 mb-2 bg-gradient-to-r from-orange-500 via-pink-500 to-amber-500 bg-clip-text text-transparent pb-1 leading-tight" style={{ WebkitTextFillColor: "transparent" }}>
+          {/* Mascot */}
+          <div className="animate-float inline-block">
+            <Image src="/red-panda.webp" alt="Lesser-kun" width={140} height={140} className="mx-auto rounded-full shadow-xl ring-4 ring-orange-200/50" />
+          </div>
+
+          <h1 className="text-5xl font-black mt-5 mb-2 bg-gradient-to-r from-orange-400 via-pink-400 to-violet-400 bg-clip-text text-transparent pb-2 leading-tight" style={{ WebkitTextFillColor: "transparent" }}>
             Caring AI
           </h1>
-          <p className="text-lg text-slate-500 mb-1">{UI.subtitle[uiLang]}</p>
-          <p className="text-slate-400 mb-6 text-sm">
+          <p className="text-lg text-slate-400 mb-1 font-bold">{UI.subtitle[uiLang]}</p>
+          <p className="text-slate-400/70 mb-8 text-sm">
             {UI.description[uiLang]}
           </p>
 
-          {/* UI Language selector */}
-          <div className="mb-2">
-            <label className="text-xs text-slate-400 font-bold block mb-1">
-              {uiLang === "ja" ? "表示言語" : uiLang === "pt" ? "Idioma da tela" : "Display Language"}
-            </label>
-            <div className="flex justify-center gap-2">
-              {(["ja", "en", "pt"] as const).map((l) => (
-                <button
-                  key={l}
-                  onClick={() => setUiLang(l)}
-                  className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all ${
-                    uiLang === l
-                      ? "bg-slate-700 text-white shadow-sm"
-                      : "bg-white/60 text-slate-400 border border-slate-200"
-                  }`}
-                >
-                  {l === "ja" ? "日本語" : l === "en" ? "English" : "Português"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Conversation language selector */}
-          <div className="mb-4">
-            <label className="text-xs text-slate-400 font-bold block mb-1">
-              {uiLang === "ja" ? "おはなしの言語" : uiLang === "pt" ? "Idioma da conversa" : "Conversation Language"}
-            </label>
-            <div className="flex justify-center gap-2">
-              {(["ja", "en", "pt"] as const).map((l) => {
-                const colors: Record<string, string> = {
-                  ja: "from-orange-400 to-pink-400",
-                  en: "from-blue-400 to-indigo-400",
-                  pt: "from-green-500 to-yellow-400",
-                };
-                return (
+          <div className="bubble-card max-w-md mx-auto space-y-5 mb-6">
+            {/* UI Language selector */}
+            <div>
+              <label className="text-xs text-slate-400 font-black block mb-2 tracking-wide">
+                {uiLang === "ja" ? "表示言語" : uiLang === "pt" ? "Idioma da tela" : "Display Language"}
+              </label>
+              <div className="flex justify-center gap-2">
+                {(["ja", "en", "pt"] as const).map((l) => (
                   <button
                     key={l}
-                    onClick={() => setLanguage(l)}
-                    className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
-                      language === l
-                        ? `bg-gradient-to-r ${colors[l]} text-white shadow-md`
-                        : "bg-white/60 text-slate-500 border border-slate-200"
+                    onClick={() => setUiLang(l)}
+                    className={`btn-fun px-4 py-2 text-xs ${
+                      uiLang === l
+                        ? "bg-gradient-to-r from-slate-600 to-slate-700 text-white"
+                        : "bg-white/80 text-slate-400 border-2 border-slate-100 shadow-none"
                     }`}
                   >
                     {l === "ja" ? "日本語" : l === "en" ? "English" : "Português"}
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="mb-6">
-            <label className="text-sm text-slate-500 font-bold block mb-1">
-              {UI.gradeLabel[uiLang]}
-            </label>
-            <select
-              value={gradeLevel}
-              onChange={(e) => setGradeLevel(e.target.value)}
-              className="px-4 py-2 rounded-xl border border-slate-200 bg-white/70 text-slate-700 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-            >
-              <option>小1〜小2段階</option>
-              <option>小3〜小4段階</option>
-              <option>小5〜中2段階</option>
-              <option>中3〜高校段階</option>
-            </select>
+            {/* Conversation language selector */}
+            <div>
+              <label className="text-xs text-slate-400 font-black block mb-2 tracking-wide">
+                {uiLang === "ja" ? "おはなしの言語" : uiLang === "pt" ? "Idioma da conversa" : "Conversation Language"}
+              </label>
+              <div className="flex justify-center gap-2">
+                {(["ja", "en", "pt"] as const).map((l) => {
+                  const colors: Record<string, string> = {
+                    ja: "from-orange-400 to-pink-400",
+                    en: "from-blue-400 to-indigo-400",
+                    pt: "from-green-400 to-teal-400",
+                  };
+                  return (
+                    <button
+                      key={l}
+                      onClick={() => setLanguage(l)}
+                      className={`btn-fun px-5 py-2.5 text-sm ${
+                        language === l
+                          ? `bg-gradient-to-r ${colors[l]} text-white`
+                          : "bg-white/80 text-slate-400 border-2 border-slate-100 shadow-none"
+                      }`}
+                    >
+                      {l === "ja" ? "日本語" : l === "en" ? "English" : "Português"}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Grade selector */}
+            <div>
+              <label className="text-xs text-slate-400 font-black block mb-2 tracking-wide">
+                {UI.gradeLabel[uiLang]}
+              </label>
+              <select
+                value={gradeLevel}
+                onChange={(e) => setGradeLevel(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl border-2 border-slate-100 bg-white/80 text-slate-600 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-300"
+              >
+                {Object.entries(GRADE_LABELS).map(([value, labels]) => (
+                  <option key={value} value={value}>{labels[uiLang]}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <button
             onClick={startConversation}
-            className="px-8 py-4 bg-gradient-to-r from-orange-400 to-pink-500 text-white text-xl font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+            className="btn-fun px-10 py-5 bg-gradient-to-r from-orange-400 via-pink-400 to-violet-400 text-white text-xl"
           >
             {UI.startBtn[uiLang]}
           </button>
 
-          <p className="mt-6 text-xs text-slate-400 whitespace-pre-line">
+          <p className="mt-6 text-xs text-slate-400/70 whitespace-pre-line">
             {UI.micNote[uiLang]}
           </p>
         </div>
@@ -719,15 +738,15 @@ export function ChatInterface() {
     <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full">
       {/* Header */}
       <div className="flex items-center justify-between py-3 px-4">
-        <div className="flex items-center gap-2">
-          <Image src="/red-panda.webp" alt="レッサーくん" width={36} height={36} className={"rounded-full " + (isSpeaking ? "animate-bounce" : "")} />
-          <span className="text-lg font-black bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+        <div className="flex items-center gap-3">
+          <Image src="/red-panda.webp" alt="Lesser-kun" width={40} height={40} className={"rounded-full shadow-md ring-2 ring-orange-200 " + (isSpeaking ? "animate-wiggle" : "")} />
+          <span className="text-lg font-black bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent" style={{ WebkitTextFillColor: "transparent" }}>
             Lesser-kun
           </span>
         </div>
         <button
           onClick={endConversation}
-          className="px-5 py-2.5 bg-gradient-to-r from-rose-400 to-pink-500 text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all"
+          className="btn-fun px-5 py-2.5 bg-gradient-to-r from-rose-400 to-pink-500 text-white text-sm"
         >
           {UI.endBtn[uiLang]}
         </button>
@@ -736,21 +755,15 @@ export function ChatInterface() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 space-y-4 pb-4">
         {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} animate-slide-up`}>
             {m.role === "assistant" && (
               <div className="flex-shrink-0 mr-2 mt-1">
-                <Image src="/red-panda.webp" alt="レッサーくん" width={32} height={32} className={"rounded-full " + (isSpeaking && i === messages.length - 1 ? "animate-bounce" : "")} />
+                <Image src="/red-panda.webp" alt="Lesser-kun" width={36} height={36} className={"rounded-full shadow-sm ring-2 ring-orange-100 " + (isSpeaking && i === messages.length - 1 ? "animate-wiggle" : "")} />
               </div>
             )}
-            <div
-              className={`max-w-[75%] rounded-2xl px-4 py-3 shadow-sm ${
-                m.role === "user"
-                  ? "bg-gradient-to-r from-indigo-400 to-purple-400 text-white"
-                  : "bg-white/80 backdrop-blur text-slate-700 border border-orange-100"
-              }`}
-            >
+            <div className={`max-w-[75%] px-4 py-3 ${m.role === "user" ? "chat-bubble-user" : "chat-bubble-ai"}`}>
               {m.role === "assistant" && (
-                <div className="text-xs text-orange-400 font-bold mb-1">Lesser-kun</div>
+                <div className="text-xs text-orange-400 font-black mb-1">Lesser-kun</div>
               )}
               <p className="text-sm leading-relaxed">{m.content}</p>
             </div>
@@ -759,31 +772,37 @@ export function ChatInterface() {
 
         {/* Silence encouragement */}
         {silenceWarning && (
-          <div className="flex justify-start">
-            <div className="flex-shrink-0 mr-2 mt-1"><Image src="/red-panda.webp" alt="レッサーくん" width={32} height={32} className="rounded-full animate-bounce" /></div>
-            <div className="max-w-[75%] rounded-2xl px-4 py-3 bg-amber-50 text-amber-700 border border-amber-200 shadow-sm">
-              <div className="text-xs text-amber-500 font-bold mb-1">Lesser-kun</div>
-              <p className="text-sm leading-relaxed">{silenceWarning}</p>
+          <div className="flex justify-start animate-pop-in">
+            <div className="flex-shrink-0 mr-2 mt-1">
+              <Image src="/red-panda.webp" alt="Lesser-kun" width={36} height={36} className="rounded-full shadow-sm ring-2 ring-amber-200 animate-wiggle" />
+            </div>
+            <div className="max-w-[75%] px-4 py-3 rounded-3xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200/50 shadow-sm">
+              <div className="text-xs text-amber-400 font-black mb-1">Lesser-kun</div>
+              <p className="text-sm leading-relaxed text-amber-700">{silenceWarning}</p>
             </div>
           </div>
         )}
 
+        {/* Current transcript */}
         {currentTranscript && (
-          <div className="flex justify-end">
-            <div className="max-w-[75%] rounded-2xl px-4 py-3 bg-indigo-50 text-indigo-700 border-2 border-dashed border-indigo-200">
+          <div className="flex justify-end animate-slide-up">
+            <div className="max-w-[75%] rounded-3xl px-4 py-3 bg-violet-50 text-violet-600 border-2 border-dashed border-violet-200">
               <p className="text-sm">{currentTranscript}</p>
             </div>
           </div>
         )}
 
+        {/* Loading */}
         {isLoading && (
-          <div className="flex justify-start">
-            <div className="flex-shrink-0 mr-2 mt-1"><Image src="/red-panda.webp" alt="レッサーくん" width={32} height={32} className="rounded-full" /></div>
-            <div className="bg-white/80 backdrop-blur rounded-2xl px-4 py-3 border border-orange-100">
-              <div className="flex space-x-1.5">
-                <div className="w-2.5 h-2.5 bg-orange-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2.5 h-2.5 bg-pink-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2.5 h-2.5 bg-amber-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+          <div className="flex justify-start animate-pop-in">
+            <div className="flex-shrink-0 mr-2 mt-1">
+              <Image src="/red-panda.webp" alt="Lesser-kun" width={36} height={36} className="rounded-full shadow-sm" />
+            </div>
+            <div className="chat-bubble-ai px-5 py-4">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-orange-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-3 h-3 bg-pink-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-3 h-3 bg-violet-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
           </div>
@@ -793,50 +812,50 @@ export function ChatInterface() {
       </div>
 
       {/* Controls */}
-      <div className="py-3 px-4 flex flex-col items-center gap-2">
-        {/* Mic enable button - shown once before mic is enabled */}
+      <div className="py-4 px-4 flex flex-col items-center gap-3">
+        {/* Mic enable button */}
         {!micEnabled && !isSpeaking && !isLoading && (
           <button
             onClick={enableMic}
-            className="px-6 py-3 bg-gradient-to-r from-green-400 to-emerald-500 text-white text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+            className="btn-fun px-8 py-4 bg-gradient-to-r from-emerald-400 to-teal-400 text-white text-lg animate-pop-in"
           >
             {UI.enableMic[uiLang]}
           </button>
         )}
 
-        {/* Send button - visible when listening and has content */}
+        {/* Send button */}
         {micEnabled && isAutoListening && (
           <button
             onClick={stopAndSend}
             disabled={!currentTranscript.trim()}
-            className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl shadow-lg transition-all ${
+            className={`btn-fun w-20 h-20 flex items-center justify-center text-3xl ${
               currentTranscript.trim()
-                ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:scale-110"
-                : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                ? "bg-gradient-to-r from-violet-400 to-indigo-400 text-white animate-pop-in"
+                : "bg-white/50 text-slate-300 cursor-not-allowed shadow-none"
             }`}
           >
             ✉️
           </button>
         )}
 
-        {/* Status */}
-        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${
+        {/* Status pill */}
+        <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black ${
           isSpeaking
-            ? "bg-orange-100 text-orange-600"
+            ? "bg-gradient-to-r from-orange-100 to-pink-100 text-orange-500"
             : isAutoListening
-            ? "bg-green-100 text-green-600"
+            ? "bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-500"
             : isLoading
-            ? "bg-purple-100 text-purple-600"
+            ? "bg-gradient-to-r from-violet-100 to-purple-100 text-violet-500"
             : !micEnabled
-            ? "bg-amber-50 text-amber-600"
-            : "bg-slate-100 text-slate-500"
+            ? "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-500"
+            : "bg-slate-100 text-slate-400"
         }`}>
           {isSpeaking ? (
-            <><span className="animate-pulse">🐾</span> {UI.speaking[uiLang]}</>
+            <><span className="animate-wiggle inline-block">🐾</span> {UI.speaking[uiLang]}</>
           ) : isAutoListening ? (
-            <><span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" /> {UI.sendHint[uiLang]}</>
+            <><span className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse" /> {UI.sendHint[uiLang]}</>
           ) : isLoading ? (
-            <><span className="animate-pulse">🐾</span> {UI.thinking[uiLang]}</>
+            <><span className="animate-wiggle inline-block">🐾</span> {UI.thinking[uiLang]}</>
           ) : !micEnabled ? (
             <>{UI.waitMic[uiLang]}</>
           ) : (
