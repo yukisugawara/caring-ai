@@ -430,7 +430,7 @@ export function ChatInterface() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcript: childUtterances, gradeLevel, language }),
+        body: JSON.stringify({ transcript: childUtterances, gradeLevel, language, uiLang }),
       });
       const data = await res.json();
       if (!data.error) setAnalysisResult(data);

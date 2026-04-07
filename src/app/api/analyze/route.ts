@@ -3,17 +3,26 @@ import { NextRequest, NextResponse } from "next/server";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-function buildAnalyzePrompt(gradeLevel: string, language: string): string {
-  const targetLang = language === "en" ? "English" : "Japanese";
-  const langLabel = language === "en" ? "英語" : "日本語";
+const OUTPUT_LANG_MAP: Record<string, string> = {
+  ja: "日本語",
+  en: "English",
+  pt: "Português (Brasil)",
+};
+
+function buildAnalyzePrompt(gradeLevel: string, language: string, uiLang: string): string {
+  const convLangLabel: Record<string, string> = { ja: "日本語", en: "英語", pt: "ポルトガル語" };
+  const convLangName: Record<string, string> = { ja: "Japanese", en: "English", pt: "Portuguese" };
+  const targetLabel = convLangLabel[language] || "日本語";
+  const targetName = convLangName[language] || "Japanese";
+  const outputLang = OUTPUT_LANG_MAP[uiLang] || "日本語";
 
   return `あなたは「ことばの力のものさし」（文部科学省, 2025年）に基づいて、\
-児童生徒の${langLabel}の発話を評価する専門家です。
+児童生徒の${targetLabel}の発話を評価する専門家です。
 
-対話型AIとの会話から抽出された児童生徒の発話テキスト（${targetLang}）が与えられます。
+対話型AIとの会話から抽出された児童生徒の発話テキスト（${targetName}）が与えられます。
 対象の学年段階は「${gradeLevel}」です。
 「聞く・話す」の観点から、以下の2つの軸で評価してください。
-※ 「ことばの力のものさし」は多言語に対応した枠組みです。${targetLang}の発話に対しても同じステージ基準を適用してください。
+※ 「ことばの力のものさし」は多言語に対応した枠組みです。${targetName}の発話に対しても同じステージ基準を適用してください。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ## 軸1: 包括的なことばの発達ステージ（A〜F）
@@ -27,8 +36,8 @@ function buildAnalyzePrompt(gradeLevel: string, language: string): string {
 - ステージF【評価・発展期】: 多角的・批判的視点をもった議論ができる。論理的構成を意識し説得力のある意見を述べられる。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-## 軸2: ${langLabel}の習得ステップ（1〜8）
-${langLabel}固有の知識・技能の習得状況を評価します。
+## 軸2: ${targetLabel}の習得ステップ（1〜8）
+${targetLabel}固有の知識・技能の習得状況を評価します。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ## 追加の分析観点
@@ -40,31 +49,31 @@ ${langLabel}固有の知識・技能の習得状況を評価します。
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ## 出力フォーマット（厳守）
 挨拶・前置き・説明文などは一切含めず、純粋な JSON だけを出力してください。
-フィードバックはすべて日本語で記述してください。
+★★★ すべてのフィードバックテキストは「${outputLang}」で記述してください。ステージ名も${outputLang}で書いてください。★★★
 
 \`\`\`json
 {
   "stage": "<A〜Fのいずれか>",
-  "stage_name": "<ステージの名称>",
-  "stage_reasoning": "<ステージ判定の根拠（日本語、2〜3文）>",
+  "stage_name": "<ステージの名称（${outputLang}で）>",
+  "stage_reasoning": "<ステージ判定の根拠（${outputLang}、2〜3文）>",
   "step": <1〜8の整数>,
-  "step_reasoning": "<ステップ判定の根拠（日本語、2〜3文）>",
-  "communication_strategies": "<コミュニケーション方略の分析（日本語、1〜2文）>",
-  "code_switching": "<コードスイッチングの分析（日本語、1〜2文）>",
-  "interactive_competence": "<相互行為能力の分析（日本語、1〜2文）>",
-  "linguistic_creativity": "<言語的創造性の分析（日本語、1〜2文）>",
-  "strengths": "<この児童の強み（日本語、2〜3文）>",
-  "next_goals": "<次の目標（日本語、2〜3文）>",
-  "support_suggestions": "<支援のアドバイス（日本語、2〜3文）>",
-  "encouragement": "<子ども本人へのやさしい励ましメッセージ（日本語、1〜2文、ひらがな多め）>"
+  "step_reasoning": "<ステップ判定の根拠（${outputLang}、2〜3文）>",
+  "communication_strategies": "<コミュニケーション方略の分析（${outputLang}、1〜2文）>",
+  "code_switching": "<コードスイッチングの分析（${outputLang}、1〜2文）>",
+  "interactive_competence": "<相互行為能力の分析（${outputLang}、1〜2文）>",
+  "linguistic_creativity": "<言語的創造性の分析（${outputLang}、1〜2文）>",
+  "strengths": "<この児童の強み（${outputLang}、2〜3文）>",
+  "next_goals": "<次の目標（${outputLang}、2〜3文）>",
+  "support_suggestions": "<支援のアドバイス（${outputLang}、2〜3文）>",
+  "encouragement": "<子ども本人へのやさしい励ましメッセージ（${outputLang}、1〜2文）>"
 }
 \`\`\``;
 }
 
 export async function POST(req: NextRequest) {
-  const { transcript, gradeLevel, language } = await req.json();
+  const { transcript, gradeLevel, language, uiLang } = await req.json();
 
-  const systemPrompt = buildAnalyzePrompt(gradeLevel, language || "ja");
+  const systemPrompt = buildAnalyzePrompt(gradeLevel, language || "ja", uiLang || "ja");
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-20250514",
@@ -82,6 +91,6 @@ export async function POST(req: NextRequest) {
     const result = JSON.parse(textToParse);
     return NextResponse.json(result);
   } catch {
-    return NextResponse.json({ error: "分析結果の解析に失敗しました", raw }, { status: 500 });
+    return NextResponse.json({ error: "Analysis failed", raw }, { status: 500 });
   }
 }
