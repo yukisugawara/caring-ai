@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     if (!res.ok) {
       const err = await res.text();
       console.error("Google STT error:", err);
-      return NextResponse.json({ error: "Transcription failed" }, { status: 500 });
+      return NextResponse.json({ error: "Transcription failed", detail: err }, { status: 500 });
     }
 
     const data = await res.json();
