@@ -509,10 +509,10 @@ export function ChatInterface() {
 
     // Pause recording while AI speaks (prevent mic picking up speaker)
     if (mediaRecorderRef.current?.state === "recording") {
-      stoppedManuallyRef.current = true;
-      mediaRecorderRef.current.stop();
+      try { mediaRecorderRef.current.stop(); } catch { /* ignore */ }
     }
     setIsAutoListening(false);
+    audioChunksRef.current = [];
 
     setIsSpeaking(true);
     try {
@@ -623,7 +623,7 @@ export function ChatInterface() {
         stream.getTracks().forEach((t) => t.stop());
       };
 
-      recorder.start(500); // collect chunks every 500ms
+      recorder.start(1000); // collect chunks every 1 second
       startSilenceTimer();
     } catch {
       alert("マイクにアクセスできません。ブラウザの権限を確認してください。");
@@ -670,12 +670,13 @@ export function ChatInterface() {
           { role: "assistant", content: "ごめんね、うまく聞き取れなかったよ。もう一回話してくれる。" },
         ]);
         setIsLoading(false);
-      } finally {
-        sendingRef.current = false;
-        // Resume listening only if conversation is still going
-        if (!conversationEndedRef.current) {
-          await startAutoListening();
-        }
+      }
+      // Always resume listening after AI response (outside try/catch)
+      sendingRef.current = false;
+      stoppedManuallyRef.current = false;
+      if (!conversationEndedRef.current) {
+        console.log("Resuming listening after AI response");
+        await startAutoListening();
       }
     },
     [speak, startAutoListening]
