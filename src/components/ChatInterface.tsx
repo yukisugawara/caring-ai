@@ -473,6 +473,9 @@ export function ChatInterface() {
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const webSpeechRef = useRef<any>(null);
+  const webSpeechTranscriptRef = useRef("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const encourageCountRef = useRef(0);
@@ -507,12 +510,14 @@ export function ChatInterface() {
     // Cancel any ongoing speech
     window.speechSynthesis.cancel();
 
-    // Pause recording while AI speaks (prevent mic picking up speaker)
+    // Pause recording & recognition while AI speaks
+    stopWebSpeech();
     if (mediaRecorderRef.current?.state === "recording") {
       try { mediaRecorderRef.current.stop(); } catch { /* ignore */ }
     }
     setIsAutoListening(false);
     audioChunksRef.current = [];
+    webSpeechTranscriptRef.current = "";
 
     setIsSpeaking(true);
     try {
@@ -593,14 +598,30 @@ export function ChatInterface() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const startAutoListeningRef = useRef<any>(null);
 
-  // Start recording with MediaRecorder
+  // Language codes for Web Speech API
+  const WEB_SPEECH_LANGS: Record<Lang, string> = {
+    ja: "ja-JP", en: "en-US", pt: "pt-BR", vi: "vi-VN",
+    ru: "ru-RU", zh: "zh-CN", de: "de-DE", ko: "ko-KR", es: "es-ES",
+  };
+
+  // Stop Web Speech API recognition
+  const stopWebSpeech = useCallback(() => {
+    if (webSpeechRef.current) {
+      try { webSpeechRef.current.stop(); } catch { /* ignore */ }
+      webSpeechRef.current = null;
+    }
+  }, []);
+
+  // Start recording with MediaRecorder + Web Speech API for real-time display
   const startAutoListening = useCallback(async () => {
-    // Stop any existing recorder
+    // Stop any existing recorder & recognition
     if (mediaRecorderRef.current?.state === "recording") {
       mediaRecorderRef.current.stop();
     }
+    stopWebSpeech();
     stoppedManuallyRef.current = false;
     audioChunksRef.current = [];
+    webSpeechTranscriptRef.current = "";
     setCurrentTranscript("");
     setIsAutoListening(true);
     lastSpeechTimeRef.current = Date.now();
@@ -613,23 +634,69 @@ export function ChatInterface() {
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           audioChunksRef.current.push(e.data);
-          // Show recording indicator
-          setCurrentTranscript("🔴 ...");
         }
       };
 
       recorder.onstop = () => {
-        // Stop all tracks
         stream.getTracks().forEach((t) => t.stop());
       };
 
-      recorder.start(1000); // collect chunks every 1 second
+      recorder.start(1000);
+
+      // Start Web Speech API for real-time transcription display
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const w = window as any;
+      const SpeechRecognition = w.SpeechRecognition || w.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = WEB_SPEECH_LANGS[language] || "en-US";
+        recognition.interimResults = true;
+        recognition.continuous = true;
+        webSpeechRef.current = recognition;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        recognition.onresult = (event: any) => {
+          let final = "";
+          let interim = "";
+          for (let i = 0; i < event.results.length; i++) {
+            const t = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              final += t;
+            } else {
+              interim += t;
+            }
+          }
+          webSpeechTranscriptRef.current = final;
+          const display = final + interim;
+          if (display) {
+            setCurrentTranscript(display);
+            lastSpeechTimeRef.current = Date.now();
+            clearSilenceTimer();
+            startSilenceTimer();
+          }
+        };
+
+        recognition.onend = () => {
+          // Auto-restart if still listening
+          if (!stoppedManuallyRef.current && !conversationEndedRef.current) {
+            try { recognition.start(); } catch { /* ignore */ }
+          }
+        };
+
+        recognition.onerror = () => {};
+        try { recognition.start(); } catch { /* ignore */ }
+      } else {
+        // No Web Speech API - show recording indicator
+        setCurrentTranscript("🔴 ...");
+      }
+
       startSilenceTimer();
     } catch {
       alert("マイクにアクセスできません。ブラウザの権限を確認してください。");
       setIsAutoListening(false);
     }
-  }, [startSilenceTimer]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startSilenceTimer, stopWebSpeech, language]);
   startAutoListeningRef.current = startAutoListening;
 
   // Teacher presses mic button once
@@ -688,6 +755,12 @@ export function ChatInterface() {
     setSilenceWarning("");
     stoppedManuallyRef.current = true;
 
+    // Save Web Speech transcript before stopping
+    const webSpeechText = webSpeechTranscriptRef.current.trim();
+
+    // Stop Web Speech API
+    stopWebSpeech();
+
     // Stop MediaRecorder
     if (mediaRecorderRef.current?.state === "recording") {
       mediaRecorderRef.current.stop();
@@ -700,19 +773,25 @@ export function ChatInterface() {
 
     const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
     audioChunksRef.current = [];
+    webSpeechTranscriptRef.current = "";
 
     console.log("Audio blob size:", audioBlob.size, "bytes");
+    console.log("Web Speech transcript:", webSpeechText);
 
-    if (audioBlob.size < 500) {
-      // Too short, restart
+    if (audioBlob.size < 500 && !webSpeechText) {
       setCurrentTranscript("");
       await startAutoListening();
       return;
     }
 
-    // If blob is too large (>10MB), warn and restart
     if (audioBlob.size > 10 * 1024 * 1024) {
       console.warn("Audio too large:", audioBlob.size);
+      // Fall back to Web Speech transcript
+      if (webSpeechText) {
+        setCurrentTranscript("");
+        sendToAI(webSpeechText);
+        return;
+      }
       setCurrentTranscript("");
       await startAutoListening();
       return;
@@ -720,19 +799,26 @@ export function ChatInterface() {
 
     try {
       const text = await transcribeAudio(audioBlob);
-      console.log("Transcribed text:", text);
+      console.log("Google STT text:", text);
       setCurrentTranscript("");
-      if (text) {
-        sendToAI(text);
+      // Use Google STT result, fall back to Web Speech if empty
+      const finalText = text || webSpeechText;
+      if (finalText) {
+        sendToAI(finalText);
       } else {
-        // Empty transcription - restart listening
-        console.log("Empty transcription, restarting");
+        console.log("No transcription from either source, restarting");
         await startAutoListening();
       }
     } catch (err) {
-      console.error("Transcription error:", err);
+      console.error("Google STT error:", err);
+      // Fall back to Web Speech transcript
       setCurrentTranscript("");
-      await startAutoListening();
+      if (webSpeechText) {
+        console.log("Falling back to Web Speech:", webSpeechText);
+        sendToAI(webSpeechText);
+      } else {
+        await startAutoListening();
+      }
     }
   }, [clearSilenceTimer, sendToAI, startAutoListening, transcribeAudio]);
 
@@ -763,6 +849,7 @@ export function ChatInterface() {
     setMicEnabled(false);
     clearSilenceTimer();
     stoppedManuallyRef.current = true;
+    stopWebSpeech();
     if (mediaRecorderRef.current?.state === "recording") {
       mediaRecorderRef.current.stop();
     }
