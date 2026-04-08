@@ -578,10 +578,14 @@ export function ChatInterface() {
       const msg = encouragements[idx];
       encourageCountRef.current++;
       setSilenceWarning(msg);
-      // Use the main speak function (respects lock)
+      // Speak encouragement, then resume recording
       await speak(msg);
+      // Restart recording after encouragement
+      if (!conversationEndedRef.current && !sendingRef.current) {
+        await startAutoListening();
+      }
     }, SILENCE_TIMEOUT_MS);
-  }, [clearSilenceTimer, speak, language]);
+  }, [clearSilenceTimer, speak, language, startAutoListening]);
 
   // Refs for managing lifecycle
   const stoppedManuallyRef = useRef(false);
