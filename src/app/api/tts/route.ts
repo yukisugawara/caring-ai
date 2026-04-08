@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
     pt: { languageCode: "pt-BR", name: "pt-BR-Wavenet-A", speakingRate: 0.90, pitch: 1.0 },
     vi: { languageCode: "vi-VN", name: "vi-VN-Wavenet-A", speakingRate: 0.90, pitch: 1.0 },
     ru: { languageCode: "ru-RU", name: "ru-RU-Wavenet-A", speakingRate: 0.90, pitch: 1.0 },
+    zh: { languageCode: "cmn-CN", name: "cmn-CN-Wavenet-A", speakingRate: 0.90, pitch: 1.0 },
   };
   const voiceConfig = VOICE_CONFIGS[language] || VOICE_CONFIGS.ja;
 

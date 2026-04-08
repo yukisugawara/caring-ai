@@ -3,54 +3,54 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
 
-type Lang = "ja" | "en" | "pt" | "vi" | "ru";
+type Lang = "ja" | "en" | "pt" | "vi" | "ru" | "zh";
 
 const UI: Record<string, Record<Lang, string>> = {
-  subtitle: { ja: "ことばの対話パートナー", en: "Language Conversation Partner", pt: "Parceiro de Conversação", vi: "Bạn đồng hành ngôn ngữ", ru: "Партнёр по языковому общению" },
+  subtitle: { ja: "ことばの対話パートナー", en: "Language Conversation Partner", pt: "Parceiro de Conversação", vi: "Bạn đồng hành ngôn ngữ", ru: "Партнёр по языковому общению", zh: "语言对话伙伴" },
   description: {
     ja: "レッサーパンダのレッサーくんとおはなしして、ことばのちからをのばそう！",
     en: "Talk with Lesser-kun the red panda and grow your language skills!",
     pt: "Converse com o Lesser-kun, o panda vermelho, e melhore suas habilidades linguísticas!",
-    vi: "Trò chuyện với Lesser-kun, chú gấu trúc đỏ, và phát triển khả năng ngôn ngữ của bạn!", ru: "Поговори с Лессер-куном, красной пандой, и развивай свои языковые навыки!",
+    vi: "Trò chuyện với Lesser-kun, chú gấu trúc đỏ, và phát triển khả năng ngôn ngữ của bạn!", ru: "Поговори с Лессер-куном, красной пандой, и развивай свои языковые навыки!", zh: "和小熊猫Lesser-kun聊天，提高你的语言能力吧！",
   },
-  gradeLabel: { ja: "学年段階", en: "Grade Level", pt: "Nível escolar", vi: "Cấp học", ru: "Уровень класса" },
-  startBtn: { ja: "おはなしを はじめる", en: "Start Talking", pt: "Começar a conversar", vi: "Bắt đầu nói chuyện", ru: "Начать разговор" },
+  gradeLabel: { ja: "学年段階", en: "Grade Level", pt: "Nível escolar", vi: "Cấp học", ru: "Уровень класса", zh: "年级阶段" },
+  startBtn: { ja: "おはなしを はじめる", en: "Start Talking", pt: "Começar a conversar", vi: "Bắt đầu nói chuyện", ru: "Начать разговор", zh: "开始聊天" },
   micNote: {
     ja: "マイクを使います。ブラウザの許可が必要です。\nGoogle Chrome での利用を推奨します。",
     en: "Requires microphone access.\nGoogle Chrome is recommended.",
     pt: "Requer acesso ao microfone.\nRecomenda-se o Google Chrome.",
-    vi: "Cần quyền truy cập micrô.\nĐề nghị sử dụng Google Chrome.", ru: "Требуется доступ к микрофону.\nРекомендуется Google Chrome.",
+    vi: "Cần quyền truy cập micrô.\nĐề nghị sử dụng Google Chrome.", ru: "Требуется доступ к микрофону.\nРекомендуется Google Chrome.", zh: "需要麦克风权限。\n建议使用Google Chrome。",
   },
-  enableMic: { ja: "🎤 マイクをオンにする", en: "🎤 Turn on Microphone", pt: "🎤 Ligar Microfone", vi: "🎤 Bật micrô", ru: "🎤 Включить микрофон" },
-  endBtn: { ja: "🏁 おはなし おわり", en: "🏁 End Talk", pt: "🏁 Terminar", vi: "🏁 Kết thúc", ru: "🏁 Завершить" },
-  sendHint: { ja: "きいているよ。おわったら ✉️ をおしてね", en: "Listening. Press ✉️ when done", pt: "Ouvindo. Aperte ✉️ quando terminar", vi: "Đang nghe. Nhấn ✉️ khi nói xong", ru: "Слушаю. Нажми ✉️ когда закончишь" },
-  speaking: { ja: "レッサーくんがおはなし中...", en: "Lesser-kun is talking...", pt: "Lesser-kun está falando...", vi: "Lesser-kun đang nói...", ru: "Лессер-кун говорит..." },
-  thinking: { ja: "レッサーくんがかんがえ中...", en: "Lesser-kun is thinking...", pt: "Lesser-kun está pensando...", vi: "Lesser-kun đang suy nghĩ...", ru: "Лессер-кун думает..." },
-  waitMic: { ja: "上のボタンをおして、はじめてね", en: "Press the button above to start", pt: "Aperte o botão acima para começar", vi: "Nhấn nút ở trên để bắt đầu", ru: "Нажми кнопку выше, чтобы начать" },
-  preparing: { ja: "じゅんびちゅう...", en: "Preparing...", pt: "Preparando...", vi: "Đang chuẩn bị...", ru: "Подготовка..." },
-  finishedTitle: { ja: "おはなし、おしまい！", en: "Great talk!", pt: "Ótima conversa!", vi: "Cuộc trò chuyện tuyệt vời!", ru: "Отличный разговор!" },
-  finishedSub: { ja: "たくさんおはなしできたね！", en: "You did a great job!", pt: "Você foi muito bem!", vi: "Bạn đã làm rất tốt!", ru: "Ты отлично справился!" },
-  fromLesser: { ja: "レッサーくんより", en: "From Lesser-kun", pt: "Do Lesser-kun", vi: "Từ Lesser-kun", ru: "От Лессер-куна" },
-  analyzing: { ja: "おはなしの分析をしています...", en: "Analyzing the conversation...", pt: "Analisando a conversa...", vi: "Đang phân tích cuộc trò chuyện...", ru: "Анализирую разговор..." },
-  stageLabel: { ja: "ことばの発達ステージ", en: "Language Development Stage", pt: "Estágio de Desenvolvimento Linguístico", vi: "Giai đoạn phát triển ngôn ngữ", ru: "Стадия языкового развития" },
-  stagePosition: { ja: "ことばの発達ステージ — 全体の中の位置", en: "Language Development Stage — Position", pt: "Estágio de Desenvolvimento — Posição", vi: "Giai đoạn phát triển — Vị trí", ru: "Стадия языкового развития — Позиция" },
-  stepLabel: { ja: "習得ステップ", en: "Acquisition Step", pt: "Etapa de Aquisição", vi: "Bước tiếp thu", ru: "Шаг освоения" },
-  stepPosition: { ja: "習得ステップ — 全体の中の位置", en: "Acquisition Step — Position", pt: "Etapa de Aquisição — Posição", vi: "Bước tiếp thu — Vị trí", ru: "Шаг освоения — Позиция" },
-  stageReason: { ja: "ステージ判定の根拠", en: "Stage Assessment Rationale", pt: "Fundamentação do Estágio", vi: "Căn cứ đánh giá giai đoạn", ru: "Обоснование стадии" },
-  stepReason: { ja: "ステップ判定の根拠", en: "Step Assessment Rationale", pt: "Fundamentação da Etapa", vi: "Căn cứ đánh giá bước", ru: "Обоснование шага" },
-  strengths: { ja: "💪 つよみ", en: "💪 Strengths", pt: "💪 Pontos fortes", vi: "💪 Điểm mạnh", ru: "💪 Сильные стороны" },
-  goals: { ja: "🎯 つぎのもくひょう", en: "🎯 Next Goals", pt: "🎯 Próximos objetivos", vi: "🎯 Mục tiêu tiếp theo", ru: "🎯 Следующие цели" },
-  support: { ja: "📖 せんせいへ", en: "📖 For Teachers", pt: "📖 Para professores", vi: "📖 Dành cho giáo viên", ru: "📖 Для учителей" },
-  commStrategy: { ja: "💡 コミュニケーション方略", en: "💡 Communication Strategies", pt: "💡 Estratégias de Comunicação", vi: "💡 Chiến lược giao tiếp", ru: "💡 Коммуникативные стратегии" },
-  codeSwitch: { ja: "🌐 コードスイッチング", en: "🌐 Code-switching", pt: "🌐 Alternância de código", vi: "🌐 Chuyển mã ngôn ngữ", ru: "🌐 Переключение кодов" },
-  interactive: { ja: "🤝 相互行為能力", en: "🤝 Interactive Competence", pt: "🤝 Competência Interativa", vi: "🤝 Năng lực tương tác", ru: "🤝 Интерактивная компетенция" },
-  creativity: { ja: "✨ 言語的創造性", en: "✨ Linguistic Creativity", pt: "✨ Criatividade Linguística", vi: "✨ Sáng tạo ngôn ngữ", ru: "✨ Языковое творчество" },
-  chatLog: { ja: "💬 おはなしのきろく", en: "💬 Conversation Log", pt: "💬 Registro da conversa", vi: "💬 Nhật ký trò chuyện", ru: "💬 Журнал разговора" },
-  you: { ja: "あなた", en: "You", pt: "Você", vi: "Bạn", ru: "Ты" },
-  restart: { ja: "もういちど おはなしする", en: "Talk Again", pt: "Conversar novamente", vi: "Nói chuyện lại", ru: "Поговорить ещё раз" },
-  stageOf6: { ja: "（全6段階中）", en: "(of 6 stages)", pt: "(de 6 estágios)", vi: "(trong 6 giai đoạn)", ru: "(из 6 стадий)" },
-  stepOf8: { ja: "（全8段階中）", en: "(of 8 steps)", pt: "(de 8 etapas)", vi: "(trong 8 bước)", ru: "(из 8 шагов)" },
-  aboutMonosashi: { ja: "📏 「ことばの力のものさし」とは", en: "📏 About the Language Assessment Framework", pt: "📏 Sobre o Instrumento de Avaliação Linguística", vi: "📏 Về khung đánh giá năng lực ngôn ngữ", ru: "📏 О системе оценки языковых способностей" },
+  enableMic: { ja: "🎤 マイクをオンにする", en: "🎤 Turn on Microphone", pt: "🎤 Ligar Microfone", vi: "🎤 Bật micrô", ru: "🎤 Включить микрофон", zh: "🎤 打开麦克风" },
+  endBtn: { ja: "🏁 おはなし おわり", en: "🏁 End Talk", pt: "🏁 Terminar", vi: "🏁 Kết thúc", ru: "🏁 Завершить", zh: "🏁 结束" },
+  sendHint: { ja: "きいているよ。おわったら ✉️ をおしてね", en: "Listening. Press ✉️ when done", pt: "Ouvindo. Aperte ✉️ quando terminar", vi: "Đang nghe. Nhấn ✉️ khi nói xong", ru: "Слушаю. Нажми ✉️ когда закончишь", zh: "正在听。说完后按 ✉️" },
+  speaking: { ja: "レッサーくんがおはなし中...", en: "Lesser-kun is talking...", pt: "Lesser-kun está falando...", vi: "Lesser-kun đang nói...", ru: "Лессер-кун говорит...", zh: "Lesser-kun正在说话..." },
+  thinking: { ja: "レッサーくんがかんがえ中...", en: "Lesser-kun is thinking...", pt: "Lesser-kun está pensando...", vi: "Lesser-kun đang suy nghĩ...", ru: "Лессер-кун думает...", zh: "Lesser-kun正在思考..." },
+  waitMic: { ja: "上のボタンをおして、はじめてね", en: "Press the button above to start", pt: "Aperte o botão acima para começar", vi: "Nhấn nút ở trên để bắt đầu", ru: "Нажми кнопку выше, чтобы начать", zh: "按上面的按钮开始吧" },
+  preparing: { ja: "じゅんびちゅう...", en: "Preparing...", pt: "Preparando...", vi: "Đang chuẩn bị...", ru: "Подготовка...", zh: "准备中..." },
+  finishedTitle: { ja: "おはなし、おしまい！", en: "Great talk!", pt: "Ótima conversa!", vi: "Cuộc trò chuyện tuyệt vời!", ru: "Отличный разговор!", zh: "聊得真开心！" },
+  finishedSub: { ja: "たくさんおはなしできたね！", en: "You did a great job!", pt: "Você foi muito bem!", vi: "Bạn đã làm rất tốt!", ru: "Ты отлично справился!", zh: "你做得很棒！" },
+  fromLesser: { ja: "レッサーくんより", en: "From Lesser-kun", pt: "Do Lesser-kun", vi: "Từ Lesser-kun", ru: "От Лессер-куна", zh: "来自Lesser-kun" },
+  analyzing: { ja: "おはなしの分析をしています...", en: "Analyzing the conversation...", pt: "Analisando a conversa...", vi: "Đang phân tích cuộc trò chuyện...", ru: "Анализирую разговор...", zh: "正在分析对话..." },
+  stageLabel: { ja: "ことばの発達ステージ", en: "Language Development Stage", pt: "Estágio de Desenvolvimento Linguístico", vi: "Giai đoạn phát triển ngôn ngữ", ru: "Стадия языкового развития", zh: "语言发展阶段" },
+  stagePosition: { ja: "ことばの発達ステージ — 全体の中の位置", en: "Language Development Stage — Position", pt: "Estágio de Desenvolvimento — Posição", vi: "Giai đoạn phát triển — Vị trí", ru: "Стадия языкового развития — Позиция", zh: "语言发展阶段 — 所处位置" },
+  stepLabel: { ja: "習得ステップ", en: "Acquisition Step", pt: "Etapa de Aquisição", vi: "Bước tiếp thu", ru: "Шаг освоения", zh: "习得步骤" },
+  stepPosition: { ja: "習得ステップ — 全体の中の位置", en: "Acquisition Step — Position", pt: "Etapa de Aquisição — Posição", vi: "Bước tiếp thu — Vị trí", ru: "Шаг освоения — Позиция", zh: "习得步骤 — 所处位置" },
+  stageReason: { ja: "ステージ判定の根拠", en: "Stage Assessment Rationale", pt: "Fundamentação do Estágio", vi: "Căn cứ đánh giá giai đoạn", ru: "Обоснование стадии", zh: "阶段判定依据" },
+  stepReason: { ja: "ステップ判定の根拠", en: "Step Assessment Rationale", pt: "Fundamentação da Etapa", vi: "Căn cứ đánh giá bước", ru: "Обоснование шага", zh: "步骤判定依据" },
+  strengths: { ja: "💪 つよみ", en: "💪 Strengths", pt: "💪 Pontos fortes", vi: "💪 Điểm mạnh", ru: "💪 Сильные стороны", zh: "💪 优势" },
+  goals: { ja: "🎯 つぎのもくひょう", en: "🎯 Next Goals", pt: "🎯 Próximos objetivos", vi: "🎯 Mục tiêu tiếp theo", ru: "🎯 Следующие цели", zh: "🎯 下一个目标" },
+  support: { ja: "📖 せんせいへ", en: "📖 For Teachers", pt: "📖 Para professores", vi: "📖 Dành cho giáo viên", ru: "📖 Для учителей", zh: "📖 给老师的建议" },
+  commStrategy: { ja: "💡 コミュニケーション方略", en: "💡 Communication Strategies", pt: "💡 Estratégias de Comunicação", vi: "💡 Chiến lược giao tiếp", ru: "💡 Коммуникативные стратегии", zh: "💡 沟通策略" },
+  codeSwitch: { ja: "🌐 コードスイッチング", en: "🌐 Code-switching", pt: "🌐 Alternância de código", vi: "🌐 Chuyển mã ngôn ngữ", ru: "🌐 Переключение кодов", zh: "🌐 语码转换" },
+  interactive: { ja: "🤝 相互行為能力", en: "🤝 Interactive Competence", pt: "🤝 Competência Interativa", vi: "🤝 Năng lực tương tác", ru: "🤝 Интерактивная компетенция", zh: "🤝 互动能力" },
+  creativity: { ja: "✨ 言語的創造性", en: "✨ Linguistic Creativity", pt: "✨ Criatividade Linguística", vi: "✨ Sáng tạo ngôn ngữ", ru: "✨ Языковое творчество", zh: "✨ 语言创造力" },
+  chatLog: { ja: "💬 おはなしのきろく", en: "💬 Conversation Log", pt: "💬 Registro da conversa", vi: "💬 Nhật ký trò chuyện", ru: "💬 Журнал разговора", zh: "💬 聊天记录" },
+  you: { ja: "あなた", en: "You", pt: "Você", vi: "Bạn", ru: "Ты", zh: "你" },
+  restart: { ja: "もういちど おはなしする", en: "Talk Again", pt: "Conversar novamente", vi: "Nói chuyện lại", ru: "Поговорить ещё раз", zh: "再聊一次" },
+  stageOf6: { ja: "（全6段階中）", en: "(of 6 stages)", pt: "(de 6 estágios)", vi: "(trong 6 giai đoạn)", ru: "(из 6 стадий)", zh: "（共6个阶段）" },
+  stepOf8: { ja: "（全8段階中）", en: "(of 8 steps)", pt: "(de 8 etapas)", vi: "(trong 8 bước)", ru: "(из 8 шагов)", zh: "（共8个步骤）" },
+  aboutMonosashi: { ja: "📏 「ことばの力のものさし」とは", en: "📏 About the Language Assessment Framework", pt: "📏 Sobre o Instrumento de Avaliação Linguística", vi: "📏 Về khung đánh giá năng lực ngôn ngữ", ru: "📏 О системе оценки языковых способностей", zh: "📏 关于语言能力评估体系" },
 };
 
 const MONOSASHI_DETAIL: Record<Lang, { intro: string; stages: { label: string; desc: string }[]; stepsIntro: string; steps: { label: string; desc: string }[]; source: string }> = {
@@ -169,6 +169,29 @@ const MONOSASHI_DETAIL: Record<Lang, { intro: string; stages: { label: string; d
     ],
     source: "Источник: Министерство образования Японии — «Руководство по шкале развития и усвоения речи» (апрель 2025)",
   },
+  zh: {
+    intro: "「语言能力量尺」（Kotoba no Chikara no Monosashi）是日本文部科学省于2025年制定的语言评估体系。该体系面向具有多元文化和语言背景的儿童，评估儿童的全部语言资源——包括母语和正在学习的语言。",
+    stages: [
+      { label: "阶段A（当下期）", desc: "在对话支持下，能够片段性地讲述熟悉的事物和经历。能回答非常简单的问题。" },
+      { label: "阶段B（从当下到顺序期）", desc: "在对话支持下，能大致按顺序讲述熟悉的事物。能大体理解学习内容并表达简短感想。" },
+      { label: "阶段C（顺序期）", desc: "能详细、有序地讲述与自己相关的事情。能理解内容的脉络并表达感想及其原因。" },
+      { label: "阶段D（因果期）", desc: "能解释包含因果关系的基本概念。能用具体事例和理由表达自己的意见。" },
+      { label: "阶段E（抽象期）", desc: "能讨论抽象概念，区分事实与观点。能进行有结构的演讲。能选择恰当的词汇。" },
+      { label: "阶段F（评价·发展期）", desc: "能从多角度、批判性视角参与讨论。能进行有说服力的、基于证据的演讲。" },
+    ],
+    stepsIntro: "从「听与说」的角度，分8个步骤评估语言知识和技能的习得情况。个体之间的进度差异很大。评估标准因年级而异。",
+    steps: [
+      { label: "步骤1", desc: "对词汇的片段性理解。被提问时可能沉默。" },
+      { label: "步骤2", desc: "用有限的词汇回答。能使用固定表达。" },
+      { label: "步骤3", desc: "在支持下用简单句子交流。" },
+      { label: "步骤4", desc: "在支持下用简单句和基本复句说话。" },
+      { label: "步骤5", desc: "能自由使用广泛的日常词汇说话。" },
+      { label: "步骤6", desc: "能用已学词汇解释基本学科概念。" },
+      { label: "步骤7", desc: "能使用惯用表达、敬语和语体选择。" },
+      { label: "步骤8", desc: "能广泛运用抽象概念词汇。" },
+    ],
+    source: "来源：日本文部科学省——《语言发展与习得量尺指南》（2025年4月）",
+  },
 };
 
 type Message = {
@@ -228,6 +251,24 @@ const ENCOURAGEMENTS_EN = [
   "Happy things, sad things, you can talk about anything.",
   "Your voice is really lovely. Let me hear more.",
   "Lesser-kun is always on your side.",
+];
+
+const ENCOURAGEMENTS_ZH = [
+  "没关系。你可以的。",
+  "慢慢来。Lesser-kun在等你。",
+  "想到什么就说什么吧。",
+  "说错也没关系。试试看吧。",
+  "什么都可以。说说你喜欢的东西。",
+  "你今天吃了什么。我很想知道。",
+  "你最喜欢的游戏是什么。也告诉Lesser-kun吧。",
+  "别担心，在这里什么都可以说。",
+  "Lesser-kun听到你的声音很开心。",
+  "和你聊天很开心。",
+  "什么词都可以。就一个词也很好。",
+  "你在安静地思考呢。这也很棒。",
+  "开心的事、难过的事，什么都可以说。",
+  "你的声音很好听。让我再多听听。",
+  "Lesser-kun永远支持你。",
 ];
 
 const ENCOURAGEMENTS_RU = [
@@ -319,7 +360,7 @@ export function ChatInterface() {
     const SpeechRecognition = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SpeechRecognition) return null;
     const recognition = new SpeechRecognition();
-    const LANG_CODES: Record<Lang, string> = { ja: "ja-JP", en: "en-US", pt: "pt-BR", vi: "vi-VN", ru: "ru-RU" };
+    const LANG_CODES: Record<Lang, string> = { ja: "ja-JP", en: "en-US", pt: "pt-BR", vi: "vi-VN", ru: "ru-RU", zh: "zh-CN" };
     recognition.lang = LANG_CODES[language];
     recognition.interimResults = true;
     recognition.continuous = true;
@@ -366,7 +407,7 @@ export function ChatInterface() {
       // Fallback to Web Speech API
       await new Promise<void>((resolve) => {
         const utterance = new SpeechSynthesisUtterance(text);
-        const FALLBACK_LANGS: Record<Lang, string> = { ja: "ja-JP", en: "en-US", pt: "pt-BR", vi: "vi-VN", ru: "ru-RU" };
+        const FALLBACK_LANGS: Record<Lang, string> = { ja: "ja-JP", en: "en-US", pt: "pt-BR", vi: "vi-VN", ru: "ru-RU", zh: "zh-CN" };
         utterance.lang = FALLBACK_LANGS[language];
         utterance.rate = 0.9;
         utterance.pitch = 1.2;
@@ -402,7 +443,7 @@ export function ChatInterface() {
       // Don't encourage if AI is already speaking or sending
       if (speakingLockRef.current || sendingRef.current) return;
 
-      const ENCMAP: Record<Lang, string[]> = { ja: ENCOURAGEMENTS_JA, en: ENCOURAGEMENTS_EN, pt: ENCOURAGEMENTS_PT, vi: ENCOURAGEMENTS_VI, ru: ENCOURAGEMENTS_RU };
+      const ENCMAP: Record<Lang, string[]> = { ja: ENCOURAGEMENTS_JA, en: ENCOURAGEMENTS_EN, pt: ENCOURAGEMENTS_PT, vi: ENCOURAGEMENTS_VI, ru: ENCOURAGEMENTS_RU, zh: ENCOURAGEMENTS_ZH };
       const encouragements = ENCMAP[language];
       const idx = encourageCountRef.current % encouragements.length;
       const msg = encouragements[idx];
@@ -555,6 +596,7 @@ export function ChatInterface() {
       pt: "Olá. Eu sou o Lesser-kun, um panda vermelho. Sobre o que vamos conversar hoje. Me conta algo que você gosta, ou o que aconteceu hoje.",
       vi: "Xin chào. Mình là Lesser-kun, một chú gấu trúc đỏ. Hôm nay chúng mình nói chuyện về gì nhé. Kể cho mình nghe điều bạn thích, hoặc chuyện gì đã xảy ra hôm nay nhé.",
       ru: "Привет. Я Лессер-кун, красная панда. О чём поговорим сегодня. Расскажи мне о том, что тебе нравится, или что произошло сегодня.",
+      zh: "你好。我是小熊猫Lesser-kun。今天我们聊什么呢。告诉我你喜欢的东西，或者今天发生了什么事吧。",
     };
     const greeting = GREETINGS[language];
     setMessages([{ role: "assistant", content: greeting }]);
@@ -832,10 +874,10 @@ export function ChatInterface() {
   // ===== Start screen =====
   if (!isStarted) {
     const GRADE_LABELS: Record<string, Record<Lang, string>> = {
-      "小1〜小2段階": { ja: "小1〜小2段階", en: "Grade 1-2", pt: "1º-2º ano", vi: "Lớp 1-2", ru: "1-2 класс" },
-      "小3〜小4段階": { ja: "小3〜小4段階", en: "Grade 3-4", pt: "3º-4º ano", vi: "Lớp 3-4", ru: "3-4 класс" },
-      "小5〜中2段階": { ja: "小5〜中2段階", en: "Grade 5-8", pt: "5º-8º ano", vi: "Lớp 5-8", ru: "5-8 класс" },
-      "中3〜高校段階": { ja: "中3〜高校段階", en: "Grade 9-12", pt: "9º ano-Ensino Médio", vi: "Lớp 9-12", ru: "9-12 класс" },
+      "小1〜小2段階": { ja: "小1〜小2段階", en: "Grade 1-2", pt: "1º-2º ano", vi: "Lớp 1-2", zh: "1-2年级", ru: "1-2 класс" },
+      "小3〜小4段階": { ja: "小3〜小4段階", en: "Grade 3-4", pt: "3º-4º ano", vi: "Lớp 3-4", zh: "3-4年级", ru: "3-4 класс" },
+      "小5〜中2段階": { ja: "小5〜中2段階", en: "Grade 5-8", pt: "5º-8º ano", vi: "Lớp 5-8", zh: "5-8年级", ru: "5-8 класс" },
+      "中3〜高校段階": { ja: "中3〜高校段階", en: "Grade 9-12", pt: "9º ano-Ensino Médio", vi: "Lớp 9-12", zh: "9-12年级", ru: "9-12 класс" },
     };
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8">
@@ -857,10 +899,10 @@ export function ChatInterface() {
             {/* UI Language selector */}
             <div>
               <label className="text-xs text-slate-400 font-black block mb-2 tracking-wide">
-                {uiLang === "ja" ? "表示言語" : uiLang === "pt" ? "Idioma da tela" : uiLang === "vi" ? "Ngôn ngữ hiển thị" : uiLang === "ru" ? "Язык интерфейса" : "Display Language"}
+                {uiLang === "ja" ? "表示言語" : uiLang === "pt" ? "Idioma da tela" : uiLang === "vi" ? "Ngôn ngữ hiển thị" : uiLang === "ru" ? "Язык интерфейса" : uiLang === "zh" ? "显示语言" : "Display Language"}
               </label>
               <div className="flex justify-center gap-2">
-                {(["ja", "en", "pt", "vi", "ru"] as const).map((l) => (
+                {(["ja", "en", "pt", "vi", "ru", "zh"] as const).map((l) => (
                   <button
                     key={l}
                     onClick={() => setUiLang(l)}
@@ -870,7 +912,7 @@ export function ChatInterface() {
                         : "bg-white/80 text-slate-400 border-2 border-slate-100 shadow-none"
                     }`}
                   >
-                    {l === "ja" ? "日本語" : l === "en" ? "English" : l === "pt" ? "Português" : l === "vi" ? "Tiếng Việt" : "Русский"}
+                    {l === "ja" ? "日本語" : l === "en" ? "English" : l === "pt" ? "Português" : l === "vi" ? "Tiếng Việt" : l === "ru" ? "Русский" : "中文"}
                   </button>
                 ))}
               </div>
@@ -879,16 +921,17 @@ export function ChatInterface() {
             {/* Conversation language selector */}
             <div>
               <label className="text-xs text-slate-400 font-black block mb-2 tracking-wide">
-                {uiLang === "ja" ? "おはなしの言語" : uiLang === "pt" ? "Idioma da conversa" : uiLang === "vi" ? "Ngôn ngữ trò chuyện" : uiLang === "ru" ? "Язык беседы" : "Conversation Language"}
+                {uiLang === "ja" ? "おはなしの言語" : uiLang === "pt" ? "Idioma da conversa" : uiLang === "vi" ? "Ngôn ngữ trò chuyện" : uiLang === "ru" ? "Язык беседы" : uiLang === "zh" ? "对话语言" : "Conversation Language"}
               </label>
               <div className="flex justify-center gap-2">
-                {(["ja", "en", "pt", "vi", "ru"] as const).map((l) => {
+                {(["ja", "en", "pt", "vi", "ru", "zh"] as const).map((l) => {
                   const colors: Record<string, string> = {
                     ja: "from-orange-400 to-pink-400",
                     en: "from-blue-400 to-indigo-400",
                     pt: "from-green-400 to-teal-400",
                     vi: "from-red-400 to-yellow-400",
                     ru: "from-sky-400 to-blue-500",
+                    zh: "from-red-500 to-amber-500",
                   };
                   return (
                     <button
@@ -900,7 +943,7 @@ export function ChatInterface() {
                           : "bg-white/80 text-slate-400 border-2 border-slate-100 shadow-none"
                       }`}
                     >
-                      {l === "ja" ? "日本語" : l === "en" ? "English" : l === "pt" ? "Português" : l === "vi" ? "Tiếng Việt" : "Русский"}
+                      {l === "ja" ? "日本語" : l === "en" ? "English" : l === "pt" ? "Português" : l === "vi" ? "Tiếng Việt" : l === "ru" ? "Русский" : "中文"}
                     </button>
                   );
                 })}
