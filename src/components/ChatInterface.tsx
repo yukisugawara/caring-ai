@@ -578,18 +578,20 @@ export function ChatInterface() {
       const msg = encouragements[idx];
       encourageCountRef.current++;
       setSilenceWarning(msg);
-      // Speak encouragement, then resume recording
+      // Speak encouragement
       await speak(msg);
-      // Restart recording after encouragement
+      // Restart recording after encouragement (use ref to avoid circular dep)
       if (!conversationEndedRef.current && !sendingRef.current) {
-        await startAutoListening();
+        startAutoListeningRef.current?.();
       }
     }, SILENCE_TIMEOUT_MS);
-  }, [clearSilenceTimer, speak, language, startAutoListening]);
+  }, [clearSilenceTimer, speak, language]);
 
   // Refs for managing lifecycle
   const stoppedManuallyRef = useRef(false);
   const sendingRef = useRef(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const startAutoListeningRef = useRef<any>(null);
 
   // Start recording with MediaRecorder
   const startAutoListening = useCallback(async () => {
@@ -628,6 +630,7 @@ export function ChatInterface() {
       setIsAutoListening(false);
     }
   }, [startSilenceTimer]);
+  startAutoListeningRef.current = startAutoListening;
 
   // Teacher presses mic button once
   const enableMic = useCallback(async () => {
