@@ -889,79 +889,72 @@ export function ChatInterface() {
       "小5〜中2段階": { ja: "小5〜中2段階", en: "Grade 5-8", pt: "5º-8º ano", vi: "Lớp 5-8", zh: "5-8年级", ru: "5-8 класс" },
       "中3〜高校段階": { ja: "中3〜高校段階", en: "Grade 9-12", pt: "9º ano-Ensino Médio", vi: "Lớp 9-12", zh: "9-12年级", ru: "9-12 класс" },
     };
+    const LANG_COLORS: Record<Lang, string> = {
+      ja: "from-orange-400 to-pink-400",
+      en: "from-blue-400 to-indigo-400",
+      pt: "from-green-400 to-teal-400",
+      vi: "from-red-400 to-yellow-400",
+      ru: "from-sky-400 to-blue-500",
+      zh: "from-red-500 to-amber-500",
+    };
+
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
-        <div className="text-center max-w-lg">
-          {/* Mascot */}
-          <div className="animate-float inline-block">
-            <Image src="/red-panda.webp" alt="Lesser-kun" width={140} height={140} className="mx-auto rounded-full shadow-xl ring-4 ring-orange-200/50" />
-          </div>
+      <div className="flex-1 flex flex-col">
+        {/* Top-right UI language dropdown */}
+        <div className="flex justify-end p-4">
+          <select
+            value={uiLang}
+            onChange={(e) => setUiLang(e.target.value as Lang)}
+            className="px-3 py-1.5 rounded-xl border-2 border-slate-100 bg-white/80 text-slate-500 font-bold text-xs focus:outline-none focus:ring-2 focus:ring-violet-300 cursor-pointer"
+          >
+            {(["ja", "en", "pt", "vi", "ru", "zh"] as const).map((l) => (
+              <option key={l} value={l}>{LANG_NAMES[l][l]}</option>
+            ))}
+          </select>
+        </div>
 
-          <h1 className="text-5xl font-black mt-5 mb-2 bg-gradient-to-r from-orange-400 via-pink-400 to-violet-400 bg-clip-text text-transparent pb-2 leading-tight" style={{ WebkitTextFillColor: "transparent" }}>
-            Caring AI
-          </h1>
-          <p className="text-lg text-slate-400 mb-1 font-bold">{UI.subtitle[uiLang]}</p>
-          <p className="text-slate-400/70 mb-8 text-sm">
-            {UI.description[uiLang]}
-          </p>
+        <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8">
+          <div className="text-center max-w-lg w-full">
+            {/* Mascot */}
+            <div className="animate-float inline-block">
+              <Image src="/red-panda.webp" alt="Lesser-kun" width={120} height={120} className="mx-auto rounded-full shadow-xl ring-4 ring-orange-200/50" />
+            </div>
 
-          <div className="bubble-card max-w-md mx-auto space-y-5 mb-6">
-            {/* UI Language selector - always show native names */}
-            <div>
-              <label className="text-xs text-slate-400 font-black block mb-2 tracking-wide">
-                {uiLang === "ja" ? "表示言語" : uiLang === "pt" ? "Idioma da tela" : uiLang === "vi" ? "Ngôn ngữ hiển thị" : uiLang === "ru" ? "Язык интерфейса" : uiLang === "zh" ? "显示语言" : "Display Language"}
+            <h1 className="text-4xl sm:text-5xl font-black mt-4 mb-1 bg-gradient-to-r from-orange-400 via-pink-400 to-violet-400 bg-clip-text text-transparent pb-2 leading-tight" style={{ WebkitTextFillColor: "transparent" }}>
+              Caring AI
+            </h1>
+            <p className="text-base text-slate-400 mb-1 font-bold">{UI.subtitle[uiLang]}</p>
+            <p className="text-slate-400/70 mb-6 text-sm">
+              {UI.description[uiLang]}
+            </p>
+
+            {/* Conversation language - card grid */}
+            <div className="mb-5">
+              <label className="text-xs text-slate-400 font-black block mb-3 tracking-wide">
+                {uiLang === "ja" ? "おはなしの言語" : uiLang === "pt" ? "Idioma da conversa" : uiLang === "vi" ? "Ngôn ngữ trò chuyện" : uiLang === "ru" ? "Язык беседы" : uiLang === "zh" ? "对话语言" : "Conversation Language"}
               </label>
-              <div className="flex justify-center gap-2 flex-wrap">
+              <div className="grid grid-cols-3 gap-2 max-w-sm mx-auto">
                 {(["ja", "en", "pt", "vi", "ru", "zh"] as const).map((l) => (
                   <button
                     key={l}
-                    onClick={() => setUiLang(l)}
-                    className={`btn-fun px-4 py-2 text-xs ${
-                      uiLang === l
-                        ? "bg-gradient-to-r from-slate-600 to-slate-700 text-white"
-                        : "bg-white/80 text-slate-400 border-2 border-slate-100 shadow-none"
+                    onClick={() => setLanguage(l)}
+                    className={`rounded-2xl py-3 px-2 text-center transition-all ${
+                      language === l
+                        ? `bg-gradient-to-br ${LANG_COLORS[l]} text-white shadow-lg scale-105 ring-2 ring-white`
+                        : "bg-white/70 text-slate-400 border-2 border-slate-100 hover:bg-white/90"
                     }`}
                   >
-                    {LANG_NAMES[l][l]}
+                    <div className="text-sm font-black">{LANG_NAMES[l][l]}</div>
+                    {l !== uiLang && (
+                      <div className={`text-xs mt-0.5 ${language === l ? "text-white/80" : "text-slate-300"}`}>{LANG_NAMES[l][uiLang]}</div>
+                    )}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Conversation language selector */}
-            <div>
-              <label className="text-xs text-slate-400 font-black block mb-2 tracking-wide">
-                {uiLang === "ja" ? "おはなしの言語" : uiLang === "pt" ? "Idioma da conversa" : uiLang === "vi" ? "Ngôn ngữ trò chuyện" : uiLang === "ru" ? "Язык беседы" : uiLang === "zh" ? "对话语言" : "Conversation Language"}
-              </label>
-              <div className="flex justify-center gap-2">
-                {(["ja", "en", "pt", "vi", "ru", "zh"] as const).map((l) => {
-                  const colors: Record<string, string> = {
-                    ja: "from-orange-400 to-pink-400",
-                    en: "from-blue-400 to-indigo-400",
-                    pt: "from-green-400 to-teal-400",
-                    vi: "from-red-400 to-yellow-400",
-                    ru: "from-sky-400 to-blue-500",
-                    zh: "from-red-500 to-amber-500",
-                  };
-                  return (
-                    <button
-                      key={l}
-                      onClick={() => setLanguage(l)}
-                      className={`btn-fun px-5 py-2.5 text-sm ${
-                        language === l
-                          ? `bg-gradient-to-r ${colors[l]} text-white`
-                          : "bg-white/80 text-slate-400 border-2 border-slate-100 shadow-none"
-                      }`}
-                    >
-                      {LANG_NAMES[l][uiLang]}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* Grade selector */}
-            <div>
+            <div className="mb-6 max-w-xs mx-auto">
               <label className="text-xs text-slate-400 font-black block mb-2 tracking-wide">
                 {UI.gradeLabel[uiLang]}
               </label>
@@ -975,18 +968,18 @@ export function ChatInterface() {
                 ))}
               </select>
             </div>
+
+            <button
+              onClick={startConversation}
+              className="btn-fun px-10 py-5 bg-gradient-to-r from-orange-400 via-pink-400 to-violet-400 text-white text-xl"
+            >
+              {UI.startBtn[uiLang]}
+            </button>
+
+            <p className="mt-6 text-xs text-slate-400/70 whitespace-pre-line">
+              {UI.micNote[uiLang]}
+            </p>
           </div>
-
-          <button
-            onClick={startConversation}
-            className="btn-fun px-10 py-5 bg-gradient-to-r from-orange-400 via-pink-400 to-violet-400 text-white text-xl"
-          >
-            {UI.startBtn[uiLang]}
-          </button>
-
-          <p className="mt-6 text-xs text-slate-400/70 whitespace-pre-line">
-            {UI.micNote[uiLang]}
-          </p>
         </div>
       </div>
     );
