@@ -251,131 +251,148 @@ type AnalysisResult = {
 
 const SILENCE_TIMEOUT_MS = 10000;
 
-const ENCOURAGEMENTS_JA = [
-  "大丈夫だよ。自信を持って。",
-  "ゆっくりでいいよ。レッサーくんが待っているからね。",
-  "思ったことを、そのまま話してみてね。",
-  "間違えてもいいんだよ。チャレンジしてみよう。",
-  "何でもいいよ。好きなことを話してみて。",
-  "今日のご飯、何食べた。教えてほしいな。",
-  "好きな遊びは何。レッサーくんにも教えて。",
-  "大丈夫、ここでは何を話してもいいんだよ。",
-  "レッサーくんはね、きみの声が聞けてうれしいな。",
-  "一緒にお話できて、楽しいよ。",
-  "どんな言葉でもいいよ。一言だけでも大丈夫。",
-  "静かに考えているんだね。それもすてきだよ。",
-  "面白いこと、悲しいこと、何でも話していいよ。",
-  "きみの声はとってもすてきだよ。もっと聞かせて。",
-  "レッサーくんはいつでもきみの味方だよ。",
-];
+// Grade-level keys for encouragement lookup
+type GradeKey = "g12" | "g34" | "g58" | "g912";
+const GRADE_TO_KEY: Record<string, GradeKey> = {
+  "小1〜小2段階": "g12",
+  "小3〜小4段階": "g34",
+  "小5〜中2段階": "g58",
+  "中3〜高校段階": "g912",
+};
 
-const ENCOURAGEMENTS_EN = [
-  "It's okay. You can do it.",
-  "Take your time. Lesser-kun is waiting for you.",
-  "Just say what you're thinking.",
-  "It's okay to make mistakes. Let's try.",
-  "Anything is fine. Tell me about something you like.",
-  "What did you eat today? I'd love to know.",
-  "What's your favorite game? Tell Lesser-kun too.",
-  "Don't worry, you can talk about anything here.",
-  "Lesser-kun is so happy to hear your voice.",
-  "I'm having fun talking with you.",
-  "Any words are fine. Even just one word is great.",
-  "You're thinking quietly. That's wonderful too.",
-  "Happy things, sad things, you can talk about anything.",
-  "Your voice is really lovely. Let me hear more.",
-  "Lesser-kun is always on your side.",
-];
-
-const ENCOURAGEMENTS_DE = [
-  "Alles gut. Du schaffst das.",
-  "Lass dir Zeit. Lesser-kun wartet auf dich.",
-  "Sag einfach, was du denkst.",
-  "Fehler sind okay. Lass es uns versuchen.",
-  "Alles ist gut. Erzähl mir von etwas, das du magst.",
-  "Was hast du heute gegessen. Das möchte ich gern wissen.",
-  "Was ist dein Lieblingsspiel. Erzähl es auch Lesser-kun.",
-  "Keine Sorge, hier kannst du über alles reden.",
-  "Lesser-kun freut sich sehr, deine Stimme zu hören.",
-  "Es macht mir viel Spaß, mit dir zu reden.",
-  "Jedes Wort ist gut. Auch nur ein Wort ist toll.",
-  "Du denkst leise nach. Das ist auch wunderbar.",
-  "Lustiges, Trauriges, du kannst über alles reden.",
-  "Deine Stimme ist wirklich schön. Lass mich mehr hören.",
-  "Lesser-kun ist immer auf deiner Seite.",
-];
-
-const ENCOURAGEMENTS_ZH = [
-  "没关系。你可以的。",
-  "慢慢来。Lesser-kun在等你。",
-  "想到什么就说什么吧。",
-  "说错也没关系。试试看吧。",
-  "什么都可以。说说你喜欢的东西。",
-  "你今天吃了什么。我很想知道。",
-  "你最喜欢的游戏是什么。也告诉Lesser-kun吧。",
-  "别担心，在这里什么都可以说。",
-  "Lesser-kun听到你的声音很开心。",
-  "和你聊天很开心。",
-  "什么词都可以。就一个词也很好。",
-  "你在安静地思考呢。这也很棒。",
-  "开心的事、难过的事，什么都可以说。",
-  "你的声音很好听。让我再多听听。",
-  "Lesser-kun永远支持你。",
-];
-
-const ENCOURAGEMENTS_RU = [
-  "Всё хорошо. У тебя получится.",
-  "Не спеши. Лессер-кун ждёт тебя.",
-  "Просто скажи то, что думаешь.",
-  "Ошибаться — это нормально. Давай попробуем.",
-  "Что угодно подойдёт. Расскажи о том, что тебе нравится.",
-  "Что ты сегодня ел. Мне очень интересно.",
-  "Какая у тебя любимая игра. Расскажи Лессер-куну тоже.",
-  "Не переживай, здесь можно говорить о чём угодно.",
-  "Лессер-кун очень рад слышать твой голос.",
-  "Мне очень весело разговаривать с тобой.",
-  "Любые слова подойдут. Даже одно слово — это отлично.",
-  "Ты тихо думаешь. Это тоже замечательно.",
-  "Весёлое, грустное — можешь рассказать о чём угодно.",
-  "У тебя очень красивый голос. Расскажи ещё.",
-  "Лессер-кун всегда на твоей стороне.",
-];
-
-const ENCOURAGEMENTS_VI = [
-  "Không sao đâu. Bạn làm được mà.",
-  "Từ từ thôi nhé. Lesser-kun đang đợi bạn.",
-  "Cứ nói những gì bạn đang nghĩ nhé.",
-  "Sai cũng không sao. Hãy thử nhé.",
-  "Gì cũng được. Kể cho mình nghe điều bạn thích.",
-  "Hôm nay bạn ăn gì. Mình muốn biết lắm.",
-  "Trò chơi yêu thích của bạn là gì. Kể cho Lesser-kun nghe nhé.",
-  "Đừng lo, ở đây bạn có thể nói về bất cứ điều gì.",
-  "Lesser-kun rất vui khi được nghe giọng của bạn.",
-  "Mình rất vui khi được nói chuyện với bạn.",
-  "Từ nào cũng được. Chỉ một từ thôi cũng tuyệt rồi.",
-  "Bạn đang suy nghĩ trong im lặng. Điều đó cũng rất tuyệt.",
-  "Chuyện vui, chuyện buồn, bạn có thể nói về bất cứ điều gì.",
-  "Giọng của bạn rất dễ thương. Cho mình nghe thêm nhé.",
-  "Lesser-kun luôn ở bên bạn.",
-];
-
-const ENCOURAGEMENTS_PT = [
-  "Tudo bem. Você consegue.",
-  "Pode ir devagar. O Lesser-kun está esperando por você.",
-  "Fala o que você está pensando.",
-  "Não tem problema errar. Vamos tentar.",
-  "Qualquer coisa serve. Me conta algo que você gosta.",
-  "O que você comeu hoje? Quero saber.",
-  "Qual é a sua brincadeira favorita? Conta pro Lesser-kun.",
-  "Não se preocupe, aqui você pode falar sobre qualquer coisa.",
-  "O Lesser-kun fica muito feliz de ouvir sua voz.",
-  "Estou me divertindo conversando com você.",
-  "Qualquer palavra serve. Até uma só palavra está ótimo.",
-  "Você está pensando em silêncio. Isso também é legal.",
-  "Coisas legais, coisas tristes, pode falar de tudo.",
-  "Sua voz é muito bonita. Quero ouvir mais.",
-  "O Lesser-kun está sempre do seu lado.",
-];
+// Encouragements by language and grade level
+const ENCOURAGEMENTS: Record<Lang, Record<GradeKey, string[]>> = {
+  ja: {
+    g12: [
+      "だいじょうぶだよ。",
+      "ゆっくりでいいよ。",
+      "すごいね。もっとおしえて。",
+      "がんばってるね。えらいよ。",
+      "なんでもいいよ。すきなこと、はなしてみて。",
+      "きょうのおひるごはん、なにたべた。",
+      "すきなあそび、おしえて。",
+      "レッサーくん、きみのこえがだいすきだよ。",
+      "いっしょにおはなしできて、たのしいな。",
+      "ひとことだけでもいいよ。",
+    ],
+    g34: [
+      "大丈夫だよ。自信を持って。",
+      "ゆっくりでいいよ。レッサーくんが待ってるからね。",
+      "思ったことを話してみてね。",
+      "間違えてもいいんだよ。チャレンジしてみよう。",
+      "好きなことを話してみて。",
+      "今日のご飯、何食べた。教えてほしいな。",
+      "好きな遊びは何。レッサーくんにも教えて。",
+      "ここでは何を話してもいいんだよ。",
+      "きみの声、すてきだよ。もっと聞かせて。",
+      "レッサーくんはいつでもきみの味方だよ。",
+    ],
+    g58: [
+      "大丈夫。自信を持って話してみよう。",
+      "ゆっくりでいいよ。待っているからね。",
+      "思ったことを、そのまま言葉にしてみて。",
+      "間違いを恐れなくていいよ。大事なのは伝えようとすること。",
+      "何でもいいよ。最近面白かったこととか。",
+      "よく考えてるね。その調子。",
+      "自分の言葉で表現できてるよ。すごいね。",
+      "いい視点だね。もっと聞かせて。",
+      "レッサーくんはきみの挑戦を応援してるよ。",
+      "きみの考え、聞けてうれしいな。",
+    ],
+    g912: [
+      "大丈夫。自分のペースで話してみて。",
+      "焦らなくていいよ。じっくり考えて。",
+      "自分の考えを言葉にしてみよう。",
+      "完璧じゃなくていい。伝えようとする気持ちが大事。",
+      "最近気になっていることとか、何でも話してみて。",
+      "深く考えているんだね。それはとても大切なこと。",
+      "自分の意見を持てているのは素晴らしいよ。",
+      "いろんな角度から考えられているね。",
+      "きみの表現力、どんどん伸びてるよ。",
+      "レッサーくんはきみの成長を見守ってるよ。",
+    ],
+  },
+  en: {
+    g12: [
+      "It's okay.",
+      "Take your time.",
+      "Wow, great job. Tell me more.",
+      "You're doing so well.",
+      "Anything is fine. What do you like.",
+      "What did you eat today.",
+      "What's your favorite game.",
+      "Lesser-kun loves your voice.",
+      "This is so fun.",
+      "Even one word is great.",
+    ],
+    g34: [
+      "It's okay. You can do it.",
+      "Take your time. Lesser-kun is waiting.",
+      "Just say what you're thinking.",
+      "It's okay to make mistakes. Let's try.",
+      "Tell me about something you like.",
+      "What did you eat today. I'd love to know.",
+      "What's your favorite game. Tell Lesser-kun.",
+      "You can talk about anything here.",
+      "Your voice is lovely. Let me hear more.",
+      "Lesser-kun is always on your side.",
+    ],
+    g58: [
+      "Don't worry. Just speak at your own pace.",
+      "Take your time. I'm listening.",
+      "Try putting your thoughts into words.",
+      "Mistakes are fine. What matters is trying.",
+      "What's been interesting to you lately.",
+      "You're thinking deeply. That's great.",
+      "You're expressing yourself really well.",
+      "That's an interesting perspective. Tell me more.",
+      "Lesser-kun supports your effort.",
+      "I'm glad to hear your thoughts.",
+    ],
+    g912: [
+      "It's okay. Take your time to think.",
+      "No need to rush. Think it through.",
+      "Try to put your ideas into words.",
+      "It doesn't have to be perfect. The effort counts.",
+      "What's been on your mind lately.",
+      "You're thinking carefully. That's valuable.",
+      "It's great that you have your own opinions.",
+      "You're considering different angles. Well done.",
+      "Your ability to express yourself is growing.",
+      "Lesser-kun is here to support your growth.",
+    ],
+  },
+  pt: {
+    g12: ["Tudo bem.", "Pode ir devagar.", "Muito bem. Me conta mais.", "Você está indo super bem.", "Qualquer coisa serve. O que você gosta.", "O que você comeu hoje.", "Qual é sua brincadeira favorita.", "O Lesser-kun adora sua voz.", "Que divertido.", "Até uma palavra está ótimo."],
+    g34: ["Tudo bem. Você consegue.", "Pode ir devagar. O Lesser-kun está esperando.", "Fala o que você está pensando.", "Errar não tem problema. Vamos tentar.", "Me conta algo que você gosta.", "O que você comeu hoje. Quero saber.", "Qual é sua brincadeira favorita. Conta pro Lesser-kun.", "Aqui você pode falar sobre qualquer coisa.", "Sua voz é muito bonita. Me conta mais.", "O Lesser-kun está sempre do seu lado."],
+    g58: ["Não se preocupe. Fale no seu ritmo.", "Pode ir devagar. Estou ouvindo.", "Tente colocar seus pensamentos em palavras.", "Erros são normais. O importante é tentar.", "O que tem sido interessante pra você.", "Você está pensando bem. Isso é ótimo.", "Você se expressa muito bem.", "Que perspectiva interessante. Me conta mais.", "O Lesser-kun apoia seu esforço.", "Fico feliz de ouvir suas ideias."],
+    g912: ["Tudo bem. Pense com calma.", "Não precisa ter pressa. Reflita.", "Tente colocar suas ideias em palavras.", "Não precisa ser perfeito. O esforço importa.", "O que tem ocupado sua mente.", "Você está refletindo com cuidado. Isso é valioso.", "É ótimo que você tenha suas próprias opiniões.", "Você considera diferentes ângulos. Muito bom.", "Sua capacidade de expressão está crescendo.", "O Lesser-kun acompanha seu desenvolvimento."],
+  },
+  vi: {
+    g12: ["Không sao đâu.", "Từ từ thôi nhé.", "Giỏi lắm. Kể thêm đi.", "Bạn làm tốt lắm.", "Gì cũng được. Bạn thích gì.", "Hôm nay bạn ăn gì.", "Trò chơi yêu thích là gì.", "Lesser-kun thích giọng của bạn lắm.", "Vui quá.", "Một từ thôi cũng tuyệt rồi."],
+    g34: ["Không sao đâu. Bạn làm được mà.", "Từ từ thôi nhé. Lesser-kun đang đợi.", "Cứ nói những gì bạn đang nghĩ.", "Sai cũng không sao. Hãy thử nhé.", "Kể cho mình nghe điều bạn thích.", "Hôm nay bạn ăn gì. Mình muốn biết.", "Trò chơi yêu thích là gì. Kể cho Lesser-kun.", "Ở đây bạn nói gì cũng được.", "Giọng bạn rất hay. Cho mình nghe thêm.", "Lesser-kun luôn ở bên bạn."],
+    g58: ["Đừng lo. Nói theo tốc độ của bạn nhé.", "Từ từ thôi. Mình đang nghe.", "Thử diễn đạt suy nghĩ bằng lời nhé.", "Sai cũng được. Quan trọng là bạn đã cố gắng.", "Gần đây có gì thú vị không.", "Bạn đang suy nghĩ sâu đấy. Tốt lắm.", "Bạn diễn đạt rất tốt.", "Góc nhìn hay đấy. Kể thêm đi.", "Lesser-kun ủng hộ nỗ lực của bạn.", "Mình vui khi nghe suy nghĩ của bạn."],
+    g912: ["Không sao. Suy nghĩ thật kỹ nhé.", "Không cần vội. Hãy suy ngẫm.", "Thử đặt ý tưởng vào lời nói.", "Không cần hoàn hảo. Nỗ lực mới quan trọng.", "Gần đây bạn nghĩ gì.", "Bạn đang cân nhắc kỹ. Điều đó rất quý.", "Thật tuyệt khi bạn có ý kiến riêng.", "Bạn xem xét từ nhiều góc độ. Giỏi lắm.", "Khả năng diễn đạt của bạn đang phát triển.", "Lesser-kun theo dõi sự trưởng thành của bạn."],
+  },
+  ru: {
+    g12: ["Всё хорошо.", "Не спеши.", "Молодец. Расскажи ещё.", "У тебя отлично получается.", "Что угодно. Что тебе нравится.", "Что ты сегодня ел.", "Какая любимая игра.", "Лессер-кун любит твой голос.", "Как весело.", "Даже одно слово отлично."],
+    g34: ["Всё хорошо. У тебя получится.", "Не спеши. Лессер-кун ждёт.", "Скажи, что думаешь.", "Ошибаться нормально. Давай попробуем.", "Расскажи, что тебе нравится.", "Что ты ел сегодня. Мне интересно.", "Какая любимая игра. Расскажи Лессер-куну.", "Здесь можно говорить обо всём.", "Твой голос красивый. Расскажи ещё.", "Лессер-кун всегда на твоей стороне."],
+    g58: ["Не переживай. Говори в своём темпе.", "Не торопись. Я слушаю.", "Попробуй выразить мысли словами.", "Ошибки это нормально. Главное пытаться.", "Что тебя интересовало в последнее время.", "Ты глубоко думаешь. Это здорово.", "Ты хорошо выражаешь свои мысли.", "Интересная точка зрения. Расскажи больше.", "Лессер-кун поддерживает тебя.", "Рад слышать твои мысли."],
+    g912: ["Не спеши. Подумай спокойно.", "Не торопись. Обдумай.", "Попробуй сформулировать свои идеи.", "Не обязательно идеально. Усилие важнее.", "Что тебя сейчас волнует.", "Ты тщательно обдумываешь. Это ценно.", "Здорово, что у тебя есть своё мнение.", "Ты рассматриваешь разные стороны. Молодец.", "Твоя способность выражаться растёт.", "Лессер-кун следит за твоим развитием."],
+  },
+  zh: {
+    g12: ["没关系。", "慢慢来。", "真棒。再多说一些。", "你做得很好。", "什么都可以。你喜欢什么。", "今天吃了什么。", "最喜欢的游戏是什么。", "Lesser-kun很喜欢你的声音。", "好开心。", "一个词也很好。"],
+    g34: ["没关系。你可以的。", "慢慢来。Lesser-kun在等你。", "想到什么就说什么。", "说错也没关系。试试看。", "说说你喜欢的东西。", "今天吃了什么。我想知道。", "最喜欢的游戏是什么。告诉Lesser-kun。", "在这里什么都可以说。", "你的声音很好听。再多说一些。", "Lesser-kun一直在你身边。"],
+    g58: ["别担心。按自己的节奏来。", "慢慢来。我在听。", "试着把想法变成语言。", "说错没关系。重要的是努力。", "最近有什么有趣的事。", "你思考得很深入。真不错。", "你表达得很好。", "很有趣的观点。多说一些。", "Lesser-kun支持你的努力。", "很高兴听到你的想法。"],
+    g912: ["没关系。好好想一想。", "不用着急。慢慢思考。", "试着把想法表达出来。", "不需要完美。努力最重要。", "最近在想什么。", "你在认真思考。这很有价值。", "有自己的观点真好。", "你从不同角度思考。很棒。", "你的表达能力在成长。", "Lesser-kun关注着你的进步。"],
+  },
+  de: {
+    g12: ["Alles gut.", "Lass dir Zeit.", "Toll. Erzähl mir mehr.", "Das machst du super.", "Alles ist okay. Was magst du.", "Was hast du heute gegessen.", "Was ist dein Lieblingsspiel.", "Lesser-kun mag deine Stimme.", "Das macht Spass.", "Auch ein Wort ist toll."],
+    g34: ["Alles gut. Du schaffst das.", "Lass dir Zeit. Lesser-kun wartet.", "Sag einfach, was du denkst.", "Fehler sind okay. Lass es uns versuchen.", "Erzähl mir von etwas, das du magst.", "Was hast du heute gegessen. Ich will es wissen.", "Was ist dein Lieblingsspiel. Erzähl es Lesser-kun.", "Hier kannst du über alles reden.", "Deine Stimme ist schön. Erzähl mehr.", "Lesser-kun ist immer auf deiner Seite."],
+    g58: ["Keine Sorge. Sprich in deinem Tempo.", "Lass dir Zeit. Ich höre zu.", "Versuch deine Gedanken in Worte zu fassen.", "Fehler sind normal. Hauptsache du versuchst es.", "Was hat dich in letzter Zeit interessiert.", "Du denkst gründlich nach. Das ist toll.", "Du drückst dich gut aus.", "Interessanter Blickwinkel. Erzähl mehr.", "Lesser-kun unterstützt dich.", "Ich freue mich, deine Gedanken zu hören."],
+    g912: ["Keine Eile. Denk in Ruhe nach.", "Nimm dir Zeit. Überleg dir gut.", "Versuch deine Ideen in Worte zu fassen.", "Es muss nicht perfekt sein. Der Versuch zählt.", "Was beschäftigt dich gerade.", "Du denkst sorgfältig nach. Das ist wertvoll.", "Es ist toll, dass du eigene Meinungen hast.", "Du betrachtest verschiedene Seiten. Gut gemacht.", "Deine Ausdrucksfähigkeit wächst.", "Lesser-kun begleitet deine Entwicklung."],
+  },
+};
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -495,8 +512,8 @@ export function ChatInterface() {
       // Don't encourage if AI is already speaking or sending
       if (speakingLockRef.current || sendingRef.current) return;
 
-      const ENCMAP: Record<Lang, string[]> = { ja: ENCOURAGEMENTS_JA, en: ENCOURAGEMENTS_EN, pt: ENCOURAGEMENTS_PT, vi: ENCOURAGEMENTS_VI, ru: ENCOURAGEMENTS_RU, zh: ENCOURAGEMENTS_ZH, de: ENCOURAGEMENTS_DE };
-      const encouragements = ENCMAP[language];
+      const gKey = GRADE_TO_KEY[gradeLevel] || "g34";
+      const encouragements = ENCOURAGEMENTS[language]?.[gKey] || ENCOURAGEMENTS.ja.g34;
       const idx = encourageCountRef.current % encouragements.length;
       const msg = encouragements[idx];
       encourageCountRef.current++;
