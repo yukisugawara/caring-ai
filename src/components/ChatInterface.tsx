@@ -50,6 +50,10 @@ const UI: Record<string, Record<Lang, string>> = {
   restart: { ja: "もういちど おはなしする", en: "Talk Again", pt: "Conversar novamente", vi: "Nói chuyện lại", ru: "Поговорить ещё раз", zh: "再聊一次", de: "Nochmal sprechen", ko: "다시 대화하기", es: "Hablar de nuevo" },
   stageOf6: { ja: "（全6段階中）", en: "(of 6 stages)", pt: "(de 6 estágios)", vi: "(trong 6 giai đoạn)", ru: "(из 6 стадий)", zh: "（共6个阶段）", de: "(von 6 Stufen)", ko: "(6단계 중)", es: "(de 6 etapas)" },
   stepOf8: { ja: "（全8段階中）", en: "(of 8 steps)", pt: "(de 8 etapas)", vi: "(trong 8 bước)", ru: "(из 8 шагов)", zh: "（共8个步骤）", de: "(von 8 Schritten)", ko: "(8단계 중)", es: "(de 8 pasos)" },
+  toneLabel: { ja: "レッサーくんの話し方", en: "Lesser-kun's tone", pt: "Tom do Lesser-kun", vi: "Giọng của Lesser-kun", ru: "Тон Лессер-куна", zh: "Lesser-kun的语气", de: "Tonfall von Lesser-kun", ko: "Lesser-kun의 말투", es: "Tono de Lesser-kun" },
+  toneCasual: { ja: "タメ口（きみ・〜だよ）", en: "Casual (buddy)", pt: "Informal (amigo)", vi: "Thân mật", ru: "На ты (друг)", zh: "随意（朋友）", de: "Lässig (Kumpel)", ko: "반말 (친구)", es: "Informal (amigo)" },
+  toneFriendly: { ja: "やさしい（〜だね・〜しよう）", en: "Friendly (gentle)", pt: "Amigável (gentil)", vi: "Thân thiện", ru: "Дружелюбный", zh: "友好（温柔）", de: "Freundlich (sanft)", ko: "다정한 (부드러운)", es: "Amigable (amable)" },
+  tonePolite: { ja: "丁寧語（〜です・〜ますね）", en: "Polite (formal)", pt: "Formal (educado)", vi: "Lịch sự", ru: "Вежливый (на Вы)", zh: "礼貌（正式）", de: "Höflich (formal)", ko: "존댓말 (공손한)", es: "Formal (educado)" },
   aboutMonosashi: { ja: "📏 「ことばの力のものさし」とは", en: "📏 About the Language Assessment Framework", pt: "📏 Sobre o Instrumento de Avaliação Linguística", vi: "📏 Về khung đánh giá năng lực ngôn ngữ", ru: "📏 О системе оценки языковых способностей", zh: "📏 关于语言能力评估体系", de: "📏 Über das Sprachbewertungssystem", ko: "📏 언어 능력 평가 체계에 대해", es: "📏 Sobre el sistema de evaluación linguistica" },
 };
 
@@ -470,6 +474,7 @@ export function ChatInterface() {
   const [micEnabled, setMicEnabled] = useState(false);
   const [language, setLanguage] = useState<Lang>("ja");
   const [uiLang, setUiLang] = useState<Lang>("ja");
+  const [toneStyle, setToneStyle] = useState<"casual" | "friendly" | "polite">("friendly");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -730,7 +735,7 @@ export function ChatInterface() {
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: newMessages, language }),
+          body: JSON.stringify({ messages: newMessages, language, toneStyle }),
         });
         const data = await res.json();
         const aiMessage: Message = { role: "assistant", content: data.text };
@@ -1188,6 +1193,32 @@ export function ChatInterface() {
                     )}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Tone selector */}
+            <div className="mb-4">
+              <label className="text-xs text-slate-400 font-black block mb-2 tracking-wide">
+                {UI.toneLabel[uiLang]}
+              </label>
+              <div className="grid grid-cols-3 gap-2 max-w-sm mx-auto">
+                {(["casual", "friendly", "polite"] as const).map((t) => {
+                  const toneUI: Record<string, keyof typeof UI> = { casual: "toneCasual", friendly: "toneFriendly", polite: "tonePolite" };
+                  const toneColors: Record<string, string> = { casual: "from-green-400 to-teal-400", friendly: "from-orange-400 to-pink-400", polite: "from-indigo-400 to-purple-400" };
+                  return (
+                    <button
+                      key={t}
+                      onClick={() => setToneStyle(t)}
+                      className={`rounded-2xl py-3 px-2 text-center transition-all ${
+                        toneStyle === t
+                          ? `bg-gradient-to-br ${toneColors[t]} text-white shadow-lg scale-105 ring-2 ring-white`
+                          : "bg-white/70 text-slate-400 border-2 border-slate-100"
+                      }`}
+                    >
+                      <div className="text-xs font-black leading-tight">{UI[toneUI[t]][uiLang]}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

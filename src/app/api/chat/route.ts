@@ -224,10 +224,49 @@ Befolge die folgenden Regeln.
 - 只使用句号和逗号。`,
 };
 
-export async function POST(req: NextRequest) {
-  const { messages, language } = await req.json();
+const TONE_INSTRUCTIONS: Record<string, Record<string, string>> = {
+  casual: {
+    ja: '\n\n## 話し方のトーン（厳守）\nタメ口で話してください。「きみ」「〜だよ」「〜だね」「〜しよう」を使います。敬語は使いません。友達のように親しく話します。',
+    en: '\n\n## Tone (strict)\nSpeak casually like a buddy. Use "you", informal contractions, and a playful tone. No formal language.',
+    pt: '\n\n## Tom (estrito)\nFale de forma informal, como um amigo. Use "você", gírias leves e um tom brincalhão.',
+    vi: '\n\n## Giọng (nghiêm túc)\nNói thân mật như bạn bè. Dùng "bạn", "mình" và giọng vui tươi.',
+    ru: '\n\n## Тон (строго)\nГовори на "ты", как друг. Используй неформальный, дружеский тон.',
+    zh: '\n\n## 语气（严格）\n用朋友的语气说话。用"你"，轻松随意的方式。不要用敬语。',
+    de: '\n\n## Tonfall (streng)\nSprich locker wie ein Kumpel. Verwende "du" und einen spielerischen Ton. Keine formelle Sprache.',
+    ko: '\n\n## 말투 (엄수)\n반말로 이야기해. "너"를 사용하고 친구처럼 편하게 말해.',
+    es: '\n\n## Tono (estricto)\nHabla de forma informal, como un amigo. Usa "tú" y un tono juguetón.',
+  },
+  friendly: {
+    ja: '\n\n## 話し方のトーン（厳守）\nやさしく親しみやすい話し方をしてください。「〜だね」「〜しようね」「〜かな」を使います。「きみ」ではなく名前や「あなた」は使わず、主語を省略して自然に話します。',
+    en: '\n\n## Tone (strict)\nSpeak in a warm, gentle, and friendly way. Be encouraging but not overly formal.',
+    pt: '\n\n## Tom (estrito)\nFale de forma calorosa, gentil e amigável. Seja encorajador sem ser muito formal.',
+    vi: '\n\n## Giọng (nghiêm túc)\nNói ấm áp, nhẹ nhàng và thân thiện. Khuyến khích nhưng không quá trang trọng.',
+    ru: '\n\n## Тон (строго)\nГовори тепло, мягко и дружелюбно. Подбадривай, но не слишком формально.',
+    zh: '\n\n## 语气（严格）\n用温暖、温柔、友好的方式说话。鼓励但不要太正式。',
+    de: '\n\n## Tonfall (streng)\nSprich warm, sanft und freundlich. Ermutigend, aber nicht zu förmlich.',
+    ko: '\n\n## 말투 (엄수)\n따뜻하고 다정하게 말해요. 격려하지만 너무 격식적이지 않게.',
+    es: '\n\n## Tono (estricto)\nHabla de forma calida, amable y cercana. Anima sin ser demasiado formal.',
+  },
+  polite: {
+    ja: '\n\n## 話し方のトーン（厳守）\n丁寧語で話してください。「〜です」「〜ますね」「〜しましょう」「〜ですか」を使います。相手を「あなた」と呼び、先生のように丁寧に接します。',
+    en: '\n\n## Tone (strict)\nSpeak politely and formally. Use "please", "would you", and respectful language throughout.',
+    pt: '\n\n## Tom (estrito)\nFale de forma educada e formal. Use "por favor", "o senhor/a senhora" e linguagem respeitosa.',
+    vi: '\n\n## Giọng (nghiêm túc)\nNói lịch sự và trang trọng. Dùng "bạn" với giọng kính trọng.',
+    ru: '\n\n## Тон (строго)\nГоворите вежливо и на "Вы". Используйте уважительный, формальный тон.',
+    zh: '\n\n## 语气（严格）\n用礼貌正式的方式说话。使用"您"和尊敬的语言。',
+    de: '\n\n## Tonfall (streng)\nSprich höflich und förmlich. Verwende "Sie" und eine respektvolle Sprache.',
+    ko: '\n\n## 말투 (엄수)\n존댓말로 이야기하세요. "~요", "~습니다"를 사용하고 공손하게 대화합니다.',
+    es: '\n\n## Tono (estricto)\nHabla de forma educada y formal. Usa "usted", "por favor" y lenguaje respetuoso.',
+  },
+};
 
-  const systemPrompt = PROMPTS[language] || SYSTEM_PROMPT_JA;
+export async function POST(req: NextRequest) {
+  const { messages, language, toneStyle } = await req.json();
+
+  const basePrompt = PROMPTS[language] || SYSTEM_PROMPT_JA;
+  const tone = toneStyle || "friendly";
+  const toneInstruction = TONE_INSTRUCTIONS[tone]?.[language] || TONE_INSTRUCTIONS[tone]?.en || "";
+  const systemPrompt = basePrompt + toneInstruction;
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-20250514",
