@@ -441,8 +441,8 @@ export function ChatInterface() {
   const [language, setLanguage] = useState<Lang>("ja");
   const [uiLang, setUiLang] = useState<Lang>("ja");
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const encourageCountRef = useRef(0);
@@ -452,19 +452,16 @@ export function ChatInterface() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, currentTranscript, silenceWarning]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function createRecognition(): any {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const w = window as any;
-    const SpeechRecognition = w.SpeechRecognition || w.webkitSpeechRecognition;
-    if (!SpeechRecognition) return null;
-    const recognition = new SpeechRecognition();
-    const LANG_CODES: Record<Lang, string> = { ja: "ja-JP", en: "en-US", pt: "pt-BR", vi: "vi-VN", ru: "ru-RU", zh: "zh-CN", de: "de-DE", ko: "ko-KR" };
-    recognition.lang = LANG_CODES[language];
-    recognition.interimResults = true;
-    recognition.continuous = true;
-    return recognition;
-  }
+  // Transcribe audio via Whisper API
+  const transcribeAudio = useCallback(async (audioBlob: Blob): Promise<string> => {
+    const formData = new FormData();
+    formData.append("audio", audioBlob, "recording.webm");
+    formData.append("language", language);
+    const res = await fetch("/api/stt", { method: "POST", body: formData });
+    if (!res.ok) throw new Error("STT failed");
+    const data = await res.json();
+    return (data.text || "").trim();
+  }, [language]);
 
   // Prevent double-speak
   const speakingLockRef = useRef(false);
@@ -477,10 +474,10 @@ export function ChatInterface() {
     // Cancel any ongoing speech
     window.speechSynthesis.cancel();
 
-    // Pause recognition while AI speaks (prevent mic picking up speaker)
-    if (recognitionRef.current) {
+    // Pause recording while AI speaks (prevent mic picking up speaker)
+    if (mediaRecorderRef.current?.state === "recording") {
       stoppedManuallyRef.current = true;
-      try { recognitionRef.current.stop(); } catch { /* ignore */ }
+      mediaRecorderRef.current.stop();
     }
     setIsAutoListening(false);
 
@@ -553,67 +550,47 @@ export function ChatInterface() {
     }, SILENCE_TIMEOUT_MS);
   }, [clearSilenceTimer, speak, language]);
 
-  // Refs for managing recognition lifecycle
-  const accumulatedRef = useRef("");
+  // Refs for managing lifecycle
   const stoppedManuallyRef = useRef(false);
   const sendingRef = useRef(false);
 
-  // Start listening
-  const startAutoListening = useCallback(() => {
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch { /* ignore */ }
+  // Start recording with MediaRecorder
+  const startAutoListening = useCallback(async () => {
+    // Stop any existing recorder
+    if (mediaRecorderRef.current?.state === "recording") {
+      mediaRecorderRef.current.stop();
     }
-    const recognition = createRecognition();
-    if (!recognition) {
-      alert("このブラウザは音声認識に対応していません。Google Chromeをお使いください。");
-      return;
-    }
-    recognitionRef.current = recognition;
     stoppedManuallyRef.current = false;
-    accumulatedRef.current = "";
+    audioChunksRef.current = [];
     setCurrentTranscript("");
     setIsAutoListening(true);
     lastSpeechTimeRef.current = Date.now();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recognition.onresult = (event: any) => {
-      let final = "";
-      let interim = "";
-      for (let i = 0; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          final += t;
-        } else {
-          interim += t;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+          // Show recording indicator
+          setCurrentTranscript("🔴 ...");
         }
-      }
-      accumulatedRef.current = final;
-      setCurrentTranscript(final + interim);
+      };
 
-      if (final.length > 0 || interim.length > 0) {
-        lastSpeechTimeRef.current = Date.now();
-        clearSilenceTimer();
-        startSilenceTimer();
-      }
-    };
+      recorder.onstop = () => {
+        // Stop all tracks
+        stream.getTracks().forEach((t) => t.stop());
+      };
 
-    recognition.onend = () => {
+      recorder.start(500); // collect chunks every 500ms
+      startSilenceTimer();
+    } catch {
+      alert("マイクにアクセスできません。ブラウザの権限を確認してください。");
       setIsAutoListening(false);
-      // Only auto-restart if NOT manually stopped, NOT sending, NOT ended
-      if (!stoppedManuallyRef.current && !sendingRef.current && !speakingLockRef.current && !conversationEndedRef.current) {
-        setTimeout(() => {
-          if (!stoppedManuallyRef.current && !sendingRef.current && !speakingLockRef.current && !conversationEndedRef.current) {
-            startAutoListening();
-          }
-        }, 500);
-      }
-    };
-
-    recognition.onerror = () => {};
-    recognition.start();
-    startSilenceTimer();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clearSilenceTimer, startSilenceTimer]);
+    }
+  }, [startSilenceTimer]);
 
   // Teacher presses mic button once
   const enableMic = useCallback(() => {
@@ -664,27 +641,45 @@ export function ChatInterface() {
     [speak, startAutoListening]
   );
 
-  // User presses send button
-  const stopAndSend = useCallback(() => {
+  // User presses send button → stop recording, transcribe, send
+  const stopAndSend = useCallback(async () => {
     clearSilenceTimer();
     setSilenceWarning("");
-    const text = accumulatedRef.current.trim() || currentTranscript.trim();
-
-    // Stop recognition manually
     stoppedManuallyRef.current = true;
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch { /* ignore */ }
+
+    // Stop MediaRecorder
+    if (mediaRecorderRef.current?.state === "recording") {
+      mediaRecorderRef.current.stop();
     }
     setIsAutoListening(false);
-    setCurrentTranscript("");
-    accumulatedRef.current = "";
+    setCurrentTranscript("📝 ...");
 
-    if (text) {
-      sendToAI(text);
-    } else {
+    // Wait a moment for final chunks
+    await new Promise((r) => setTimeout(r, 300));
+
+    const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+    audioChunksRef.current = [];
+
+    if (audioBlob.size < 1000) {
+      // Too short, restart
+      setCurrentTranscript("");
+      startAutoListening();
+      return;
+    }
+
+    try {
+      const text = await transcribeAudio(audioBlob);
+      setCurrentTranscript("");
+      if (text) {
+        sendToAI(text);
+      } else {
+        startAutoListening();
+      }
+    } catch {
+      setCurrentTranscript("");
       startAutoListening();
     }
-  }, [currentTranscript, clearSilenceTimer, sendToAI, startAutoListening]);
+  }, [clearSilenceTimer, sendToAI, startAutoListening, transcribeAudio]);
 
   const startConversation = useCallback(async () => {
     setIsStarted(true);
@@ -712,10 +707,10 @@ export function ChatInterface() {
     setMicEnabled(false);
     clearSilenceTimer();
     stoppedManuallyRef.current = true;
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch { /* ignore */ }
-      recognitionRef.current = null;
+    if (mediaRecorderRef.current?.state === "recording") {
+      mediaRecorderRef.current.stop();
     }
+    mediaRecorderRef.current = null;
     setIsAutoListening(false);
     setCurrentTranscript("");
     window.speechSynthesis.cancel();
@@ -1172,12 +1167,7 @@ export function ChatInterface() {
         {micEnabled && isAutoListening && (
           <button
             onClick={stopAndSend}
-            disabled={!currentTranscript.trim()}
-            className={`btn-fun w-20 h-20 flex items-center justify-center text-3xl ${
-              currentTranscript.trim()
-                ? "bg-gradient-to-r from-violet-400 to-indigo-400 text-white animate-pop-in"
-                : "bg-white/50 text-slate-300 cursor-not-allowed shadow-none"
-            }`}
+            className="btn-fun w-20 h-20 flex items-center justify-center text-3xl bg-gradient-to-r from-violet-400 to-indigo-400 text-white animate-pop-in"
           >
             ✉️
           </button>
