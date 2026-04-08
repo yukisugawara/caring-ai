@@ -8,11 +8,12 @@ const OUTPUT_LANG_MAP: Record<string, string> = {
   en: "English",
   pt: "Português (Brasil)",
   vi: "Tiếng Việt",
+  ru: "Русский",
 };
 
 function buildAnalyzePrompt(gradeLevel: string, language: string, uiLang: string): string {
-  const convLangLabel: Record<string, string> = { ja: "日本語", en: "英語", pt: "ポルトガル語", vi: "ベトナム語" };
-  const convLangName: Record<string, string> = { ja: "Japanese", en: "English", pt: "Portuguese", vi: "Vietnamese" };
+  const convLangLabel: Record<string, string> = { ja: "日本語", en: "英語", pt: "ポルトガル語", vi: "ベトナム語", ru: "ロシア語" };
+  const convLangName: Record<string, string> = { ja: "Japanese", en: "English", pt: "Portuguese", vi: "Vietnamese", ru: "Russian" };
   const targetLabel = convLangLabel[language] || "日本語";
   const targetName = convLangName[language] || "Japanese";
   const outputLang = OUTPUT_LANG_MAP[uiLang] || "日本語";
