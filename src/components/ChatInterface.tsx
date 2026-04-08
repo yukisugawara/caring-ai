@@ -634,6 +634,12 @@ export function ChatInterface() {
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           audioChunksRef.current.push(e.data);
+          // Reset silence timer on any audio data (voice activity)
+          if (e.data.size > 1000) {
+            lastSpeechTimeRef.current = Date.now();
+            clearSilenceTimer();
+            startSilenceTimer();
+          }
         }
       };
 
