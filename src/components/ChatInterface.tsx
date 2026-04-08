@@ -53,6 +53,16 @@ const UI: Record<string, Record<Lang, string>> = {
   aboutMonosashi: { ja: "📏 「ことばの力のものさし」とは", en: "📏 About the Language Assessment Framework", pt: "📏 Sobre o Instrumento de Avaliação Linguística", vi: "📏 Về khung đánh giá năng lực ngôn ngữ", ru: "📏 О системе оценки языковых способностей", zh: "📏 关于语言能力评估体系" },
 };
 
+// Language names in each display language
+const LANG_NAMES: Record<Lang, Record<Lang, string>> = {
+  ja: { ja: "日本語", en: "日本語", pt: "日本語", vi: "日本語", ru: "日本語", zh: "日本語" },
+  en: { ja: "英語", en: "English", pt: "Inglês", vi: "Tiếng Anh", ru: "Английский", zh: "英语" },
+  pt: { ja: "ポルトガル語", en: "Portuguese", pt: "Português", vi: "Tiếng Bồ Đào Nha", ru: "Португальский", zh: "葡萄牙语" },
+  vi: { ja: "ベトナム語", en: "Vietnamese", pt: "Vietnamita", vi: "Tiếng Việt", ru: "Вьетнамский", zh: "越南语" },
+  ru: { ja: "ロシア語", en: "Russian", pt: "Russo", vi: "Tiếng Nga", ru: "Русский", zh: "俄语" },
+  zh: { ja: "中国語", en: "Chinese", pt: "Chinês", vi: "Tiếng Trung", ru: "Китайский", zh: "中文" },
+};
+
 const MONOSASHI_DETAIL: Record<Lang, { intro: string; stages: { label: string; desc: string }[]; stepsIntro: string; steps: { label: string; desc: string }[]; source: string }> = {
   ja: {
     intro: "「ことばの力のものさし」（正式名称：ことばの発達と習得のものさし）は、文部科学省が2025年に策定した、文化的言語的に多様な背景を持つ外国人児童生徒等のためのことばの評価枠組みです。日本語も母語も含め、子どもが持っているすべてのことばのレパートリーを使って最大限にできることを評価します。",
@@ -896,12 +906,12 @@ export function ChatInterface() {
           </p>
 
           <div className="bubble-card max-w-md mx-auto space-y-5 mb-6">
-            {/* UI Language selector */}
+            {/* UI Language selector - always show native names */}
             <div>
               <label className="text-xs text-slate-400 font-black block mb-2 tracking-wide">
                 {uiLang === "ja" ? "表示言語" : uiLang === "pt" ? "Idioma da tela" : uiLang === "vi" ? "Ngôn ngữ hiển thị" : uiLang === "ru" ? "Язык интерфейса" : uiLang === "zh" ? "显示语言" : "Display Language"}
               </label>
-              <div className="flex justify-center gap-2">
+              <div className="flex justify-center gap-2 flex-wrap">
                 {(["ja", "en", "pt", "vi", "ru", "zh"] as const).map((l) => (
                   <button
                     key={l}
@@ -912,7 +922,7 @@ export function ChatInterface() {
                         : "bg-white/80 text-slate-400 border-2 border-slate-100 shadow-none"
                     }`}
                   >
-                    {l === "ja" ? "日本語" : l === "en" ? "English" : l === "pt" ? "Português" : l === "vi" ? "Tiếng Việt" : l === "ru" ? "Русский" : "中文"}
+                    {LANG_NAMES[l][l]}
                   </button>
                 ))}
               </div>
@@ -943,7 +953,7 @@ export function ChatInterface() {
                           : "bg-white/80 text-slate-400 border-2 border-slate-100 shadow-none"
                       }`}
                     >
-                      {l === "ja" ? "日本語" : l === "en" ? "English" : l === "pt" ? "Português" : l === "vi" ? "Tiếng Việt" : l === "ru" ? "Русский" : "中文"}
+                      {LANG_NAMES[l][uiLang]}
                     </button>
                   );
                 })}
