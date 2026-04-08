@@ -623,9 +623,9 @@ export function ChatInterface() {
   }, [startSilenceTimer]);
 
   // Teacher presses mic button once
-  const enableMic = useCallback(() => {
+  const enableMic = useCallback(async () => {
     setMicEnabled(true);
-    startAutoListening();
+    await startAutoListening();
   }, [startAutoListening]);
 
   // Keep a ref to latest messages to avoid stale closure issues
@@ -664,7 +664,7 @@ export function ChatInterface() {
         sendingRef.current = false;
         // Resume listening only if conversation is still going
         if (!conversationEndedRef.current) {
-          startAutoListening();
+          await startAutoListening();
         }
       }
     },
@@ -1220,9 +1220,11 @@ export function ChatInterface() {
           {isSpeaking ? (
             <><span className="animate-wiggle inline-block">🐾</span> {UI.speaking[uiLang]}</>
           ) : isAutoListening ? (
-            <><span className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse" /> {UI.sendHint[uiLang]}</>
+            <><span className="w-3 h-3 bg-red-500 rounded-full animate-pulse" /> {UI.sendHint[uiLang]}</>
           ) : isLoading ? (
             <><span className="animate-wiggle inline-block">🐾</span> {UI.thinking[uiLang]}</>
+          ) : sendingRef.current ? (
+            <>📝 ...</>
           ) : !micEnabled ? (
             <>{UI.waitMic[uiLang]}</>
           ) : (
