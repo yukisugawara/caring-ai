@@ -488,8 +488,11 @@ export function ChatInterface() {
     formData.append("audio", audioBlob, "recording.webm");
     formData.append("language", language);
     const res = await fetch("/api/stt", { method: "POST", body: formData });
-    if (!res.ok) throw new Error("STT failed");
     const data = await res.json();
+    if (!res.ok) {
+      console.error("STT error:", data);
+      throw new Error("STT failed");
+    }
     return (data.text || "").trim();
   }, [language]);
 
