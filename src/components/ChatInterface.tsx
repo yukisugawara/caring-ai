@@ -50,6 +50,102 @@ const UI: Record<string, Record<Lang, string>> = {
   restart: { ja: "もういちど おはなしする", en: "Talk Again", pt: "Conversar novamente", vi: "Nói chuyện lại" },
   stageOf6: { ja: "（全6段階中）", en: "(of 6 stages)", pt: "(de 6 estágios)", vi: "(trong 6 giai đoạn)" },
   stepOf8: { ja: "（全8段階中）", en: "(of 8 steps)", pt: "(de 8 etapas)", vi: "(trong 8 bước)" },
+  aboutMonosashi: { ja: "📏 「ことばの力のものさし」とは", en: "📏 About the Language Assessment Framework", pt: "📏 Sobre o Instrumento de Avaliação Linguística", vi: "📏 Về khung đánh giá năng lực ngôn ngữ" },
+};
+
+const MONOSASHI_DETAIL: Record<Lang, { intro: string; stages: { label: string; desc: string }[]; stepsIntro: string; steps: { label: string; desc: string }[]; source: string }> = {
+  ja: {
+    intro: "「ことばの力のものさし」（正式名称：ことばの発達と習得のものさし）は、文部科学省が2025年に策定した、文化的言語的に多様な背景を持つ外国人児童生徒等のためのことばの評価枠組みです。日本語も母語も含め、子どもが持っているすべてのことばのレパートリーを使って最大限にできることを評価します。",
+    stages: [
+      { label: "ステージA【イマココ期】", desc: "対話による支援を得て、身近なことや経験したことについて覚えている場面を断片的に話せる。ごく簡単な質問（誰が、何が/を、どんな/どうした等）に答えられる。" },
+      { label: "ステージB【イマココから順序期】", desc: "対話による支援を得て、身近なことや経験したことについて順序にそっておおまかに話せる。学習内容を聞いておおむね理解し、ひとこと程度の感想が言える。自分が聞きたいことを質問できる。" },
+      { label: "ステージC【順序期】", desc: "自分に関係のあることや体験したことについて順序にそってくわしく話せる。学習内容を聞いて話の流れを理解し、感想とその理由が言える。話し合いの場で教師や友達の話を聞いて発言できる。" },
+      { label: "ステージD【因果期】", desc: "教科学習内容の基本的な概念について因果関係を含めて説明できる。集めた情報を示しながら授業で発表できる。具体的な事例とともに理由を挙げながら自分の意見を述べられる。" },
+      { label: "ステージE【抽象期】", desc: "抽象的な概念について事実と意見の違いを意識しつつ、共通点や相違点を整理して議論できる。構成を意識したわかりやすいプレゼンテーションができる。場面や相手に応じて適切な語彙や表現を選択できる。" },
+      { label: "ステージF【評価・発展期】", desc: "中学から高校の教科学習内容について多角的・批判的視点をもった議論ができる。論理的構成を意識し根拠に基づいた効果的なプレゼンテーションができる。反論できる論理の展開を考え説得力のある意見を述べられる。" },
+    ],
+    stepsIntro: "日本語固有の知識・技能の習得状況を、「聞く・話す」の観点から8段階で評価します。ステップの進み具合は個人差が大きく、数ヶ月で複数のステップを進めるケースもあれば、数年同じステップにとどまるケースもあります。学年段階ごとに異なる基準で判定します。",
+    steps: [
+      { label: "ステップ1", desc: "単語の断片的な理解。質問に答えられず沈黙する場合がある。" },
+      { label: "ステップ2", desc: "限られた単語での応答。定型表現が使える。" },
+      { label: "ステップ3", desc: "支援付きで単文による意思疎通ができる。" },
+      { label: "ステップ4", desc: "支援付きで単文・簡単な複文で話せる。" },
+      { label: "ステップ5", desc: "日常語彙を幅広く使い自由に発話できる。" },
+      { label: "ステップ6", desc: "教科学習の基本概念を既習語彙で説明できる。" },
+      { label: "ステップ7", desc: "慣用表現・敬語・話体選択ができる。" },
+      { label: "ステップ8", desc: "抽象的概念語彙を幅広く運用できる。" },
+    ],
+    source: "出典：文部科学省「ことばの発達と習得のものさし まるわかりガイド」（2025年4月）",
+  },
+  en: {
+    intro: 'The "Language Development and Acquisition Scale" (Kotoba no Chikara no Monosashi) is a language assessment framework established by the Japanese Ministry of Education in 2025. It is designed for children with diverse cultural and linguistic backgrounds, evaluating the full range of their language repertoire — including both their native language and the language being learned.',
+    stages: [
+      { label: "Stage A (Here and Now)", desc: "With conversational support, can talk fragmentarily about familiar things and experiences. Can answer very simple questions (who, what, how, etc.)." },
+      { label: "Stage B (Here-and-Now to Sequential)", desc: "With conversational support, can talk roughly in order about familiar things and experiences. Can generally understand learning content and express brief impressions. Can ask questions about things they want to know." },
+      { label: "Stage C (Sequential)", desc: "Can talk in detail and in order about things related to themselves and their experiences. Can understand the flow of learning content and express impressions with reasons. Can participate in discussions." },
+      { label: "Stage D (Causal)", desc: "Can explain basic concepts including cause-and-effect relationships. Can present using collected information. Can state opinions with specific examples and reasons." },
+      { label: "Stage E (Abstract)", desc: "Can discuss abstract concepts while distinguishing facts from opinions. Can give well-structured presentations. Can select appropriate vocabulary for the situation and audience." },
+      { label: "Stage F (Evaluative/Advanced)", desc: "Can engage in discussions with multiple and critical perspectives. Can give effective evidence-based presentations with logical structure. Can develop persuasive arguments considering counterpoints." },
+    ],
+    stepsIntro: "Evaluates the acquisition of language-specific knowledge and skills in 8 steps from the perspective of 'listening and speaking.' Progress varies greatly among individuals — some advance through multiple steps in months, while others may stay at the same step for years. Assessment criteria differ by grade level.",
+    steps: [
+      { label: "Step 1", desc: "Fragmentary understanding of words. May remain silent when asked questions." },
+      { label: "Step 2", desc: "Can respond with limited words. Can use set expressions." },
+      { label: "Step 3", desc: "With support, can communicate using simple sentences." },
+      { label: "Step 4", desc: "With support, can speak using simple and basic compound sentences." },
+      { label: "Step 5", desc: "Can speak freely using a wide range of everyday vocabulary." },
+      { label: "Step 6", desc: "Can explain basic academic concepts using learned vocabulary." },
+      { label: "Step 7", desc: "Can use idiomatic expressions, honorifics, and register selection." },
+      { label: "Step 8", desc: "Can broadly use abstract conceptual vocabulary." },
+    ],
+    source: "Source: Ministry of Education, Japan — \"Language Development and Acquisition Scale Guide\" (April 2025)",
+  },
+  pt: {
+    intro: 'A "Escala de Desenvolvimento e Aquisição Linguística" (Kotoba no Chikara no Monosashi) é um instrumento de avaliação linguística estabelecido pelo Ministério da Educação do Japão em 2025. Foi projetado para crianças com origens culturais e linguísticas diversas, avaliando todo o repertório linguístico da criança — incluindo tanto a língua materna quanto a língua em aprendizagem.',
+    stages: [
+      { label: "Estágio A (Aqui e Agora)", desc: "Com apoio na conversa, consegue falar fragmentariamente sobre coisas familiares e experiências. Consegue responder perguntas muito simples." },
+      { label: "Estágio B (Do Aqui-e-Agora à Sequência)", desc: "Com apoio na conversa, consegue falar de forma aproximadamente ordenada sobre coisas familiares. Consegue compreender conteúdos de aprendizagem e expressar breves impressões." },
+      { label: "Estágio C (Sequencial)", desc: "Consegue falar em detalhe e em ordem sobre coisas relacionadas a si mesmo e suas experiências. Consegue compreender o fluxo do conteúdo e expressar impressões com razões." },
+      { label: "Estágio D (Causal)", desc: "Consegue explicar conceitos básicos incluindo relações de causa e efeito. Consegue apresentar usando informações coletadas. Consegue expressar opiniões com exemplos e razões." },
+      { label: "Estágio E (Abstrato)", desc: "Consegue discutir conceitos abstratos distinguindo fatos de opiniões. Consegue fazer apresentações bem estruturadas. Consegue selecionar vocabulário adequado." },
+      { label: "Estágio F (Avaliativo/Avançado)", desc: "Consegue participar de discussões com perspectivas múltiplas e críticas. Consegue fazer apresentações eficazes baseadas em evidências. Consegue desenvolver argumentos persuasivos." },
+    ],
+    stepsIntro: "Avalia a aquisição de conhecimentos e habilidades específicos da língua em 8 etapas, na perspectiva de 'ouvir e falar.' O progresso varia muito entre os indivíduos. Os critérios de avaliação diferem por nível escolar.",
+    steps: [
+      { label: "Etapa 1", desc: "Compreensão fragmentária de palavras. Pode permanecer em silêncio quando questionado." },
+      { label: "Etapa 2", desc: "Responde com palavras limitadas. Usa expressões fixas." },
+      { label: "Etapa 3", desc: "Com apoio, comunica-se usando frases simples." },
+      { label: "Etapa 4", desc: "Com apoio, fala usando frases simples e compostas básicas." },
+      { label: "Etapa 5", desc: "Fala livremente usando amplo vocabulário cotidiano." },
+      { label: "Etapa 6", desc: "Explica conceitos acadêmicos básicos com vocabulário aprendido." },
+      { label: "Etapa 7", desc: "Usa expressões idiomáticas, formas de respeito e registros variados." },
+      { label: "Etapa 8", desc: "Usa amplamente vocabulário conceitual abstrato." },
+    ],
+    source: "Fonte: Ministério da Educação do Japão — \"Guia da Escala de Desenvolvimento e Aquisição Linguística\" (abril de 2025)",
+  },
+  vi: {
+    intro: '"Thước đo Phát triển và Tiếp thu Ngôn ngữ" (Kotoba no Chikara no Monosashi) là khung đánh giá ngôn ngữ do Bộ Giáo dục Nhật Bản xây dựng năm 2025. Khung này được thiết kế cho trẻ em có nền tảng văn hóa và ngôn ngữ đa dạng, đánh giá toàn bộ vốn ngôn ngữ của trẻ — bao gồm cả tiếng mẹ đẻ và ngôn ngữ đang học.',
+    stages: [
+      { label: "Giai đoạn A (Ở đây và Bây giờ)", desc: "Với sự hỗ trợ trong hội thoại, có thể nói rời rạc về những điều quen thuộc và trải nghiệm. Có thể trả lời các câu hỏi rất đơn giản." },
+      { label: "Giai đoạn B (Từ Hiện tại đến Trình tự)", desc: "Với sự hỗ trợ, có thể nói theo trình tự sơ lược về những điều quen thuộc. Có thể hiểu nội dung học tập và bày tỏ cảm nhận ngắn gọn." },
+      { label: "Giai đoạn C (Trình tự)", desc: "Có thể nói chi tiết và theo trình tự về những điều liên quan đến bản thân. Có thể hiểu nội dung và bày tỏ cảm nhận kèm lý do." },
+      { label: "Giai đoạn D (Nhân quả)", desc: "Có thể giải thích các khái niệm cơ bản bao gồm quan hệ nhân quả. Có thể trình bày ý kiến với ví dụ cụ thể và lý do." },
+      { label: "Giai đoạn E (Trừu tượng)", desc: "Có thể thảo luận các khái niệm trừu tượng, phân biệt sự thật và ý kiến. Có thể thuyết trình có cấu trúc. Có thể chọn từ vựng phù hợp." },
+      { label: "Giai đoạn F (Đánh giá/Nâng cao)", desc: "Có thể tham gia thảo luận với nhiều góc nhìn phản biện. Có thể thuyết trình hiệu quả dựa trên bằng chứng. Có thể phát triển lập luận thuyết phục." },
+    ],
+    stepsIntro: "Đánh giá mức độ tiếp thu kiến thức và kỹ năng ngôn ngữ qua 8 bước, từ góc độ 'nghe và nói.' Tốc độ tiến bộ khác nhau rất nhiều giữa các cá nhân. Tiêu chí đánh giá khác nhau theo cấp học.",
+    steps: [
+      { label: "Bước 1", desc: "Hiểu từ vựng rời rạc. Có thể im lặng khi được hỏi." },
+      { label: "Bước 2", desc: "Trả lời bằng từ vựng hạn chế. Sử dụng được biểu thức cố định." },
+      { label: "Bước 3", desc: "Với hỗ trợ, giao tiếp bằng câu đơn giản." },
+      { label: "Bước 4", desc: "Với hỗ trợ, nói bằng câu đơn và câu ghép cơ bản." },
+      { label: "Bước 5", desc: "Nói tự do với vốn từ vựng hàng ngày phong phú." },
+      { label: "Bước 6", desc: "Giải thích khái niệm học thuật cơ bản bằng từ vựng đã học." },
+      { label: "Bước 7", desc: "Sử dụng thành ngữ, kính ngữ và lựa chọn ngữ vực." },
+      { label: "Bước 8", desc: "Sử dụng rộng rãi từ vựng khái niệm trừu tượng." },
+    ],
+    source: "Nguồn: Bộ Giáo dục Nhật Bản — \"Hướng dẫn Thước đo Phát triển và Tiếp thu Ngôn ngữ\" (tháng 4 năm 2025)",
+  },
 };
 
 type Message = {
@@ -626,6 +722,47 @@ export function ChatInterface() {
                   {m.content}
                 </div>
               ))}
+            </div>
+          </details>
+
+          {/* Monosashi detail explanation */}
+          <details className="bubble-card">
+            <summary className="font-black text-slate-400 text-sm cursor-pointer">{UI.aboutMonosashi[uiLang]}</summary>
+            <div className="mt-4 space-y-5">
+              {/* Introduction */}
+              <p className="text-sm text-slate-500 leading-relaxed">{MONOSASHI_DETAIL[uiLang].intro}</p>
+
+              {/* Stages */}
+              <div>
+                <h4 className="font-black text-violet-500 text-sm mb-3">{UI.stagePosition[uiLang]}</h4>
+                <div className="space-y-2">
+                  {MONOSASHI_DETAIL[uiLang].stages.map((s, i) => (
+                    <div key={i} className={`rounded-2xl p-3 border-l-4 ${
+                      ["border-slate-300 bg-slate-50/50", "border-blue-300 bg-blue-50/50", "border-green-300 bg-green-50/50", "border-amber-300 bg-amber-50/50", "border-purple-300 bg-purple-50/50", "border-pink-300 bg-pink-50/50"][i]
+                    }`}>
+                      <div className="font-black text-xs text-slate-600 mb-1">{s.label}</div>
+                      <p className="text-xs text-slate-500 leading-relaxed">{s.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Steps */}
+              <div>
+                <h4 className="font-black text-pink-500 text-sm mb-2">{UI.stepPosition[uiLang]}</h4>
+                <p className="text-xs text-slate-400 mb-3 leading-relaxed">{MONOSASHI_DETAIL[uiLang].stepsIntro}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {MONOSASHI_DETAIL[uiLang].steps.map((s, i) => (
+                    <div key={i} className="rounded-xl bg-white/60 p-2.5 border border-white/80">
+                      <div className="font-black text-xs text-pink-400 mb-0.5">{s.label}</div>
+                      <p className="text-xs text-slate-500 leading-relaxed">{s.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Source */}
+              <p className="text-xs text-slate-300 italic">{MONOSASHI_DETAIL[uiLang].source}</p>
             </div>
           </details>
 
