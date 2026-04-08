@@ -694,30 +694,44 @@ export function ChatInterface() {
     setIsAutoListening(false);
     setCurrentTranscript("📝 ...");
 
-    // Wait a moment for final chunks
-    await new Promise((r) => setTimeout(r, 300));
+    // Wait for MediaRecorder to finish writing final chunks
+    await new Promise((r) => setTimeout(r, 500));
 
     const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
     audioChunksRef.current = [];
 
-    if (audioBlob.size < 1000) {
+    console.log("Audio blob size:", audioBlob.size, "bytes");
+
+    if (audioBlob.size < 500) {
       // Too short, restart
       setCurrentTranscript("");
-      startAutoListening();
+      await startAutoListening();
+      return;
+    }
+
+    // If blob is too large (>10MB), warn and restart
+    if (audioBlob.size > 10 * 1024 * 1024) {
+      console.warn("Audio too large:", audioBlob.size);
+      setCurrentTranscript("");
+      await startAutoListening();
       return;
     }
 
     try {
       const text = await transcribeAudio(audioBlob);
+      console.log("Transcribed text:", text);
       setCurrentTranscript("");
       if (text) {
         sendToAI(text);
       } else {
-        startAutoListening();
+        // Empty transcription - restart listening
+        console.log("Empty transcription, restarting");
+        await startAutoListening();
       }
-    } catch {
+    } catch (err) {
+      console.error("Transcription error:", err);
       setCurrentTranscript("");
-      startAutoListening();
+      await startAutoListening();
     }
   }, [clearSilenceTimer, sendToAI, startAutoListening, transcribeAudio]);
 
