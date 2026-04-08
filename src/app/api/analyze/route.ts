@@ -10,11 +10,12 @@ const OUTPUT_LANG_MAP: Record<string, string> = {
   vi: "Tiếng Việt",
   ru: "Русский",
   zh: "中文",
+  de: "Deutsch",
 };
 
 function buildAnalyzePrompt(gradeLevel: string, language: string, uiLang: string): string {
-  const convLangLabel: Record<string, string> = { ja: "日本語", en: "英語", pt: "ポルトガル語", vi: "ベトナム語", ru: "ロシア語", zh: "中国語" };
-  const convLangName: Record<string, string> = { ja: "Japanese", en: "English", pt: "Portuguese", vi: "Vietnamese", ru: "Russian", zh: "Chinese" };
+  const convLangLabel: Record<string, string> = { ja: "日本語", en: "英語", pt: "ポルトガル語", vi: "ベトナム語", ru: "ロシア語", zh: "中国語", de: "ドイツ語" };
+  const convLangName: Record<string, string> = { ja: "Japanese", en: "English", pt: "Portuguese", vi: "Vietnamese", ru: "Russian", zh: "Chinese", de: "German" };
   const targetLabel = convLangLabel[language] || "日本語";
   const targetName = convLangName[language] || "Japanese";
   const outputLang = OUTPUT_LANG_MAP[uiLang] || "日本語";
