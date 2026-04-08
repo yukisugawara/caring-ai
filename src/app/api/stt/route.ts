@@ -9,6 +9,7 @@ const LANG_CODES: Record<string, string> = {
   zh: "cmn-Hans-CN",
   de: "de-DE",
   ko: "ko-KR",
+  es: "es-ES",
 };
 
 export async function POST(req: NextRequest) {
