@@ -49,22 +49,83 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    const res = await fetch(
-      `https://speech.googleapis.com/v1p1beta1/speech:recognize?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+    // Estimate audio duration. WebM/Opus ~16-32 kbps → ~2-4 KB/sec.
+    // Sync `speech:recognize` is capped at ~60s; use longrunningrecognize
+    // when the payload could exceed that, so long speech isn't truncated.
+    const sizeBytes = arrayBuffer.byteLength;
+    const useLongRunning = sizeBytes > 200 * 1024; // >~200KB → likely >60s
+
+    let data: { results?: { alternatives?: { transcript?: string }[] }[] };
+
+    if (!useLongRunning) {
+      const res = await fetch(
+        `https://speech.googleapis.com/v1p1beta1/speech:recognize?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
+      if (!res.ok) {
+        const err = await res.text();
+        console.error("Google STT error:", err);
+        return NextResponse.json({ error: "Transcription failed", detail: err }, { status: 500 });
       }
-    );
+      data = await res.json();
+    } else {
+      // Start long-running operation
+      const startRes = await fetch(
+        `https://speech.googleapis.com/v1p1beta1/speech:longrunningrecognize?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
+      if (!startRes.ok) {
+        const err = await startRes.text();
+        console.error("Google STT longrunning start error:", err);
+        return NextResponse.json({ error: "Transcription failed", detail: err }, { status: 500 });
+      }
+      const op = await startRes.json();
+      const opName: string | undefined = op.name;
+      if (!opName) {
+        return NextResponse.json({ error: "No operation name returned" }, { status: 500 });
+      }
 
-    if (!res.ok) {
-      const err = await res.text();
-      console.error("Google STT error:", err);
-      return NextResponse.json({ error: "Transcription failed", detail: err }, { status: 500 });
+      // Poll the operation until done (or timeout ~2.5 min)
+      const deadline = Date.now() + 150_000;
+      let opData: {
+        done?: boolean;
+        response?: { results?: { alternatives?: { transcript?: string }[] }[] };
+        error?: { message?: string };
+      } = {};
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const pollRes = await fetch(
+          `https://speech.googleapis.com/v1/operations/${encodeURIComponent(opName)}?key=${apiKey}`
+        );
+        if (!pollRes.ok) {
+          const err = await pollRes.text();
+          console.error("Google STT poll error:", err);
+          continue;
+        }
+        opData = await pollRes.json();
+        if (opData.done) break;
+      }
+
+      if (!opData.done) {
+        return NextResponse.json({ error: "Transcription timed out" }, { status: 504 });
+      }
+      if (opData.error) {
+        console.error("Google STT longrunning error:", opData.error);
+        return NextResponse.json(
+          { error: "Transcription failed", detail: opData.error.message },
+          { status: 500 }
+        );
+      }
+      data = opData.response || {};
     }
-
-    const data = await res.json();
 
     // Extract transcription from results
     const transcript = (data.results || [])

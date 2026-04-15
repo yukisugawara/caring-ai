@@ -607,20 +607,24 @@ export function ChatInterface() {
         recognition.continuous = true;
         webSpeechRef.current = recognition;
 
+        // Text accumulated from previous recognition sessions (before auto-restart)
+        let baseText = "";
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         recognition.onresult = (event: any) => {
-          let final = "";
+          let sessionFinal = "";
           let interim = "";
           for (let i = 0; i < event.results.length; i++) {
             const t = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-              final += t;
+              sessionFinal += t;
             } else {
               interim += t;
             }
           }
-          webSpeechTranscriptRef.current = final;
-          const display = final + interim;
+          const totalFinal = (baseText + sessionFinal).trim();
+          webSpeechTranscriptRef.current = totalFinal;
+          const display = (baseText + sessionFinal + interim).trim();
           if (display) {
             setCurrentTranscript(display);
             lastSpeechTimeRef.current = Date.now();
@@ -630,6 +634,10 @@ export function ChatInterface() {
         };
 
         recognition.onend = () => {
+          // Preserve accumulated finals before restart (event.results resets on start)
+          if (webSpeechTranscriptRef.current) {
+            baseText = webSpeechTranscriptRef.current + " ";
+          }
           // Auto-restart if still listening
           if (!stoppedManuallyRef.current && !conversationEndedRef.current) {
             try { recognition.start(); } catch { /* ignore */ }
